@@ -1,0 +1,132 @@
+/* Deals Carousel */
+.deals-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-behavior: smooth;
+}
+
+.deals-carousel::-webkit-scrollbar {
+  height: 6px;
+}
+
+.deals-carousel::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.deals-carousel::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.deals-carousel::-webkit-scrollbar-thumb:hover {
+  background: #0056b3;
+}
+
+/* Deal Card */
+.deal-card {
+  min-width: 280px;
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(2, 6, 23, 0.06);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.deal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
+}
+
+/* Deal Image */
+.deal-image-container {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.deal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s;
+}
+
+.deal-card:hover .deal-image {
+  transform: scale(1.08);
+}
+
+.deal-discount-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: var(--primary);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+/* Deal Body */
+.deal-body {
+  padding: 14px;
+}
+
+.deal-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.deal-title {
+  margin: 8px 0 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.deal-description {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.btn-view-deal {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  background: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-view-deal:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .deal-card {
+    min-width: 240px;
+  }
+
+  .deal-image-container {
+    height: 140px;
+  }
+}

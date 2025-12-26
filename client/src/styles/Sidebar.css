@@ -1,0 +1,143 @@
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 120px;
+  width: 280px;
+  height: calc(100vh - 140px);
+  background: var(--card);
+  border-right: 1px solid #e6e9ef;
+  padding: 18px;
+  overflow-y: auto;
+  transition: transform 0.28s ease;
+  z-index: 80;
+}
+
+.sidebar-closed {
+  transform: translateX(-112%);
+}
+
+/* Toggle Button */
+.sidebar-toggle-btn {
+  position: fixed;
+  left: 12px;
+  top: 136px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  z-index: 140;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.sidebar-toggle-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+/* Filter sections */
+.filter-section {
+  margin-bottom: 20px;
+}
+
+.filter-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+/* Filter buttons */
+.filter-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 123, 255, 0.08);
+  background: #fbfdff;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: #f3f6ff;
+  border-color: rgba(0, 123, 255, 0.2);
+}
+
+.filter-btn-active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.filter-btn-active:hover {
+  background: #0056b3;
+}
+
+/* Price range */
+.price-range-slider {
+  width: 100%;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.price-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Tenure select */
+.tenure-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 123, 255, 0.08);
+  background: #fbfdff;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.tenure-select:focus {
+  border-color: var(--primary);
+}
+
+.tenure-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Login teaser */
+.login-teaser-box {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+
+  .sidebar-toggle-btn {
+    display: block;
+  }
+}
