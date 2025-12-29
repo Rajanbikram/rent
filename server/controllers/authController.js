@@ -137,15 +137,26 @@ const loginSeller = async (req, res) => {
   }
 };
 
-// User Registration
+// User Registration (Renter/Admin)
 const registerUser = async (req, res) => {
   try {
-    const { fullName, email, password, isStudent } = req.body;
+    const { fullName, email, password, role, isStudent } = req.body;
+
+    console.log('📝 User registration attempt:', { email, fullName, role });
 
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields'
+      });
+    }
+
+    // ✅ Check if role is provided and valid
+    const userRole = role || 'renter';
+    if (!['admin', 'renter'].includes(userRole)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role. Must be admin or renter'
       });
     }
 
@@ -163,12 +174,14 @@ const registerUser = async (req, res) => {
       fullName,
       email,
       password: hashedPassword,
-      role: 'renter',
+      role: userRole,
       isStudent: isStudent || false
     });
 
+    console.log('✅ User created:', user.email, 'Role:', user.role);
+
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: 'renter' },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key-change-in-production',
       { expiresIn: '7d' }
     );
@@ -181,11 +194,12 @@ const registerUser = async (req, res) => {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
-        role: 'renter'
+        role: user.role,
+        isStudent: user.isStudent
       }
     });
   } catch (error) {
-    console.error('User registration error:', error);
+    console.error('❌ User registration error:', error);
     res.status(500).json({
       success: false,
       message: 'User registration failed',
@@ -194,10 +208,12 @@ const registerUser = async (req, res) => {
   }
 };
 
-// User Login
+// User Login (Renter/Admin)
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
+
+    console.log('🔐 User login attempt:', email, 'Role:', role);
 
     if (!email || !password) {
       return res.status(400).json({
@@ -208,25 +224,42 @@ const loginUser = async (req, res) => {
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      console.log('❌ User not found:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
+    console.log('✅ User found:', user.email, 'Role:', user.role);
+
+    // ✅ Check if role matches (if role is provided in login)
+    if (role && user.role !== role) {
+      console.log('❌ Role mismatch. User role:', user.role, 'Login role:', role);
+      return res.status(403).json({
+        success: false,
+        message: `This account is not registered as ${role}`
+      });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log('❌ Invalid password for user:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
+
+    console.log('✅ Password valid, generating token...');
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key-change-in-production',
       { expiresIn: '7d' }
     );
+
+    console.log('✅ Login successful for user:', user.email);
 
     res.json({
       success: true,
@@ -236,11 +269,12 @@ const loginUser = async (req, res) => {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role
+        role: user.role,
+        isStudent: user.isStudent
       }
     });
   } catch (error) {
-    console.error('User login error:', error);
+    console.error('❌ User login error:', error);
     res.status(500).json({
       success: false,
       message: 'Login failed',
@@ -271,7 +305,6 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
-// ✅ EXPORT ALL FUNCTIONS
 module.exports = {
   registerSeller,
   loginSeller,

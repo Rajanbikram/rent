@@ -48,7 +48,7 @@ const LoginPage = () => {
       if (response.data.success) {
         const { token } = response.data;
         
-        // ✅ FIXED: Get user data from correct key based on role
+        // Get user data from correct key based on role
         let userData;
         if (response.data.seller) {
           userData = response.data.seller;
@@ -75,19 +75,21 @@ const LoginPage = () => {
         console.log('💾 User:', localStorage.getItem('user'));
         console.log('💾 Role:', localStorage.getItem('userRole'));
         
-        // Navigate based on role
+        // ✅ UPDATED: Navigate based on role
         const role = (userData.role || formData.role).toLowerCase();
         
         if (role === 'seller') {
           console.log('🚀 Navigating to seller dashboard...');
           navigate('/seller/dashboard');
+        } else if (role === 'renter') {
+          console.log('🚀 Navigating to rental dashboard...');
+          navigate('/rental');  // ✅ FIXED: Direct navigation to /rental
         } else if (role === 'admin') {
           console.log('🚀 Navigating to admin dashboard...');
           alert(`Welcome ${userData.name || userData.fullName}!\n\nAdmin dashboard coming soon!`);
           navigate('/');
         } else {
-          console.log('🚀 Navigating to renter dashboard...');
-          alert(`Welcome ${userData.name || userData.fullName}!\n\nRenter dashboard coming soon!`);
+          console.log('🚀 Navigating to home...');
           navigate('/');
         }
       } else {

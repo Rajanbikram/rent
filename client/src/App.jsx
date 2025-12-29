@@ -6,6 +6,7 @@ import GuestBrowse from './pages/GuestBrowse';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SellerDashboard from './pages/SellerDashboard';
+import RentalHome from './pages/RentalHome'; // ✅ NEW
 
 // Simplified Protected Route - Uses localStorage directly
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -21,7 +22,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
   if (requiredRole && userRole !== requiredRole) {
     console.log(`❌ Wrong role: ${userRole} !== ${requiredRole}`);
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   console.log('✅ Access granted!');
@@ -42,6 +43,24 @@ function App() {
         element={
           <ProtectedRoute requiredRole="seller">
             <SellerDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ✅ NEW: Protected Renter Routes */}
+      <Route
+        path="/rental"
+        element={
+          <ProtectedRoute requiredRole="renter">
+            <RentalHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/rental/*"
+        element={
+          <ProtectedRoute requiredRole="renter">
+            <RentalHome />
           </ProtectedRoute>
         }
       />
