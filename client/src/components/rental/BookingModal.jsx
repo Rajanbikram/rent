@@ -277,4 +277,4 @@ const BookingModal = ({ product, isOpen, onClose, showToast }) => {
   );
 };
 
-export default BookingModal;
+export default BookingModal;"// Jan 1: Booking modal tweak" 
