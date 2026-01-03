@@ -3,12 +3,16 @@ const User = require('../models/User');
 const { Seller } = require('../models');
 
 const authMiddleware = async (req, res, next) => {
+  console.log('🚨 AUTH MIDDLEWARE TRIGGERED');
+  console.log('🚨 Request:', req.method, req.path);
+  
   try {
     const authHeader = req.headers.authorization;
     
-    console.log('🔐 Auth middleware - Authorization header:', authHeader ? 'Present' : 'Missing');
+    console.log('🔐 Auth header:', authHeader ? 'Present ✅' : 'Missing ❌');
     
     if (!authHeader) {
+      console.log('❌ No authorization header');
       return res.status(401).json({
         success: false,
         message: 'No authorization header provided'
@@ -18,6 +22,7 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     
     if (!token) {
+      console.log('❌ No token in header');
       return res.status(401).json({
         success: false,
         message: 'No token provided'
@@ -28,7 +33,7 @@ const authMiddleware = async (req, res, next) => {
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
     
-    console.log('✅ Token verified, user ID:', decoded.id, 'Role:', decoded.role);
+    console.log('✅ Token verified - User ID:', decoded.id, 'Role:', decoded.role);
     
     let user;
     
@@ -62,6 +67,7 @@ const authMiddleware = async (req, res, next) => {
     
   } catch (error) {
     console.error('❌ Auth middleware error:', error.message);
+    console.error('❌ Full error:', error);
     
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
@@ -86,9 +92,10 @@ const authMiddleware = async (req, res, next) => {
 };
 
 const isSellerMiddleware = (req, res, next) => {
-  console.log('👤 Checking seller role for user:', req.user?.email, 'Role:', req.user?.role);
+  console.log('👤 Checking seller role - User:', req.user?.email, 'Role:', req.user?.role);
   
   if (!req.user) {
+    console.log('❌ No user in request');
     return res.status(401).json({
       success: false,
       message: 'User not authenticated'
@@ -96,7 +103,7 @@ const isSellerMiddleware = (req, res, next) => {
   }
 
   if (req.user.role !== 'seller') {
-    console.log('❌ Access denied - user is not a seller');
+    console.log('❌ Access denied - not a seller');
     return res.status(403).json({
       success: false,
       message: 'Access denied. Seller role required.'
@@ -108,9 +115,10 @@ const isSellerMiddleware = (req, res, next) => {
 };
 
 const isRenterMiddleware = (req, res, next) => {
-  console.log('🏠 Checking renter role for user:', req.user?.email, 'Role:', req.user?.role);
+  console.log('🏠 Checking renter role - User:', req.user?.email, 'Role:', req.user?.role);
   
   if (!req.user) {
+    console.log('❌ No user in request');
     return res.status(401).json({
       success: false,
       message: 'User not authenticated'
@@ -118,7 +126,7 @@ const isRenterMiddleware = (req, res, next) => {
   }
 
   if (req.user.role !== 'renter') {
-    console.log('❌ Access denied - user is not a renter');
+    console.log('❌ Access denied - not a renter');
     return res.status(403).json({
       success: false,
       message: 'Access denied. Renter role required.'

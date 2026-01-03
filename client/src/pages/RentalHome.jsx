@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RentalProvider } from '../contexts/RentalContext';
+
 import Header from '../components/rental/Header';
 import Hero from '../components/rental/Hero';
 import SearchFilters from '../components/rental/SearchFilters';
@@ -45,46 +45,45 @@ const RentalHome = () => {
   };
 
   return (
-    <RentalProvider showToast={showToast}>
-      <div className="rental-home">
-        <Header onCartOpen={() => setCartOpen(true)} />
-        
-        <main>
-          <div className="container">
-            <Hero />
-            <SearchFilters />
-            <ActiveRentals showToast={showToast} />
-            <ProductGrid onViewDetails={handleViewDetails} showToast={showToast} />
-          </div>
-        </main>
+    // ✅ REMOVED RentalProvider wrapper (now in main.jsx)
+    <div className="rental-home">
+      <Header onCartOpen={() => setCartOpen(true)} />
+      
+      <main>
+        <div className="container">
+          <Hero />
+          <SearchFilters />
+          <ActiveRentals showToast={showToast} />
+          <ProductGrid onViewDetails={handleViewDetails} showToast={showToast} />
+        </div>
+      </main>
 
-        <Cart 
-          isOpen={cartOpen} 
-          onClose={() => setCartOpen(false)} 
-          onCheckout={handleCheckout}
-          showToast={showToast}
-        />
-        
-        <CompareDrawer showToast={showToast} />
-        
-        <ProductModal 
-          product={selectedProduct}
-          isOpen={productModalOpen}
-          onClose={() => setProductModalOpen(false)}
-          onBookNow={handleBookNow}
-          showToast={showToast}
-        />
-        
-        <BookingModal 
-          product={selectedProduct}
-          isOpen={bookingModalOpen}
-          onClose={() => setBookingModalOpen(false)}
-          showToast={showToast}
-        />
+      <Cart 
+        isOpen={cartOpen} 
+        onClose={() => setCartOpen(false)} 
+        onCheckout={handleCheckout}
+        showToast={showToast}
+      />
+      
+      <CompareDrawer showToast={showToast} />
+      
+      <ProductModal 
+        product={selectedProduct}
+        isOpen={productModalOpen}
+        onClose={() => setProductModalOpen(false)}
+        onBookNow={handleBookNow}
+        showToast={showToast}
+      />
+      
+      <BookingModal 
+        product={selectedProduct}
+        isOpen={bookingModalOpen}
+        onClose={() => setBookingModalOpen(false)}
+        showToast={showToast}
+      />
 
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
-      </div>
-    </RentalProvider>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+    </div>
   );
 };
 

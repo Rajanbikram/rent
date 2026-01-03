@@ -5,78 +5,78 @@ const { sequelize } = require('./config/database');
 
 dotenv.config();
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const sellerRoutes = require('./routes/sellerRoutes');
-const productRoutes = require('./routes/products');
-const dealRoutes = require('./routes/deals');
-const rentalProductRoutes = require('./routes/rental/products');
-const rentalCartRoutes = require('./routes/rental/Cart');
-const rentalFavoritesRoutes = require('./routes/rental/favorites');
-const rentalRentalsRoutes = require('./routes/rental/rentals');
+// ✅ LOAD ASSOCIATIONS
+require('./models/rental');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// ==================== MIDDLEWARE ====================
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: 'http://localhost:5173',
   credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Dev logging
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-  });
-}
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/seller', sellerRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/deals', dealRoutes);
-app.use('/api/rental/products', rentalProductRoutes);
-app.use('/api/rental/cart', rentalCartRoutes);
-app.use('/api/rental/favorites', rentalFavoritesRoutes);
-app.use('/api/rental/rentals', rentalRentalsRoutes);
+// ✅ REQUEST LOGGER - ADD THIS
+app.use((req, res, next) => {
+  console.log(`\n📨 ${req.method} ${req.path}`);
+  console.log('📨 Auth header:', req.headers.authorization ? 'Present ✅' : 'Missing ❌');
+  next();
+});
+
+// ==================== ROUTES ====================
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/seller', require('./routes/sellerRoutes'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/deals', require('./routes/deals'));
+app.use('/api/rental/products', require('./routes/rental/products'));
+app.use('/api/rental/cart', require('./routes/rental/cart'));
+app.use('/api/rental/favorites', require('./routes/rental/favorites'));
+app.use('/api/rental/rentals', require('./routes/rental/rentals'));
 
 // Health check
 app.get('/api/health', async (req, res) => {
   try {
     await sequelize.authenticate();
-    res.json({ success: true, message: 'Server running' });
+    res.json({ success: true, message: 'Server is healthy' });
   } catch (error) {
     res.status(503).json({ success: false, error: error.message });
   }
 });
 
-// 404 handler
+// ==================== ERROR HANDLERS ====================
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route not found: ${req.path}` });
+  console.log('❌ 404 - Route not found:', req.path);
+  res.status(404).json({ 
+    success: false, 
+    message: `Route not found: ${req.path}` 
+  });
 });
 
-// Error handler
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.message);
-  res.status(err.status || 500).json({ success: false, message: err.message || 'Server error' });
+  console.error('❌ Server Error:', err.message);
+  console.error('❌ Stack:', err.stack);
+  res.status(err.status || 500).json({ 
+    success: false, 
+    message: err.message || 'Internal Server Error' 
+  });
 });
 
-// Start server
+// ==================== START SERVER ====================
 const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connected');
     
-    await sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
-    console.log('✅ Models synced');
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database synced');
     
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-      console.log(`📋 API Routes: /api/auth, /api/seller, /api/products, /api/deals, /api/rental/*`);
+      console.log(`\n🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📱 Frontend: http://localhost:5173\n`);
     });
   } catch (error) {
     console.error('❌ Failed to start:', error.message);
@@ -84,31 +84,10 @@ const startServer = async () => {
   }
 };
 
-// ✅ IMPORTANT: Graceful shutdown (prevents data loss)
-const shutdown = async (signal) => {
-  console.log(`\n${signal} received, closing server...`);
-  try {
-    await sequelize.close();
-    console.log('✅ Database closed');
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Shutdown error:', error.message);
-    process.exit(1);
-  }
-};
-
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
-
-// ✅ IMPORTANT: Handle crashes (helps debugging)
-process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Promise:', err);
-  if (process.env.NODE_ENV !== 'production') process.exit(1);
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('❌ Uncaught Exception:', err);
-  process.exit(1);
+process.on('SIGINT', async () => {
+  console.log('\n👋 Shutting down...');
+  await sequelize.close();
+  process.exit(0);
 });
 
 startServer();

@@ -1,8 +1,12 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../config/database'); // ✅ FIXED: Added { }
+const { sequelize } = require('../../config/database');
 
 const RentalProduct = sequelize.define('RentalProduct', {
-  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  id: { 
+    type: DataTypes.INTEGER, 
+    autoIncrement: true, 
+    primaryKey: true 
+  },
   name: { type: DataTypes.STRING, allowNull: false },
   category: { type: DataTypes.ENUM('furniture', 'appliances'), allowNull: false },
   image: { type: DataTypes.STRING, allowNull: false },
@@ -14,6 +18,9 @@ const RentalProduct = sequelize.define('RentalProduct', {
   badge: { type: DataTypes.ENUM('hotDeal', 'studentOffer', 'limitedTime'), allowNull: true },
   description: { type: DataTypes.TEXT, allowNull: false },
   stock: { type: DataTypes.INTEGER, defaultValue: 10 }
-}, { tableName: 'rental_products' });
+}, { 
+  tableName: 'rental_products',
+  underscored: true
+});
 
 module.exports = RentalProduct;
