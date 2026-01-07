@@ -3,8 +3,8 @@ const { sequelize } = require('../../config/database');
 
 const RentalProduct = sequelize.define('RentalProduct', {
   id: { 
-    type: DataTypes.INTEGER, 
-    autoIncrement: true, 
+    type: DataTypes.UUID,  // ✅ Changed from INTEGER to UUID
+    defaultValue: DataTypes.UUIDV4, 
     primaryKey: true 
   },
   name: { type: DataTypes.STRING, allowNull: false },

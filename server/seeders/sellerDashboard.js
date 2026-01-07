@@ -9,13 +9,20 @@ const seedSellerDashboard = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connected');
 
-    // Sync models (WARNING: Deletes all existing data!)
-    await sequelize.sync({ force: true });
-    console.log('✅ Tables created');
+    // ✅ FIXED - Only creates tables if they don't exist
+    await sequelize.sync();
+    console.log('✅ Tables synced');
+
+    // Delete old data to avoid duplicates
+    await Seller.destroy({ where: {} });
+    await Listing.destroy({ where: {} });
+    await Message.destroy({ where: {} });
+    await RentalHistory.destroy({ where: {} });
+    console.log('🗑️  Cleared old seller data');
 
     const hashedPassword = await bcrypt.hash('password123', 10);
 
-    // CREATE MULTIPLE SELLERS - Sabai ko same data huncha
+    // CREATE MULTIPLE SELLERS
     const sellersData = [
       {
         name: 'Rajesh Shrestha',
@@ -68,7 +75,7 @@ const seedSellerDashboard = async () => {
     const sellers = await Seller.bulkCreate(sellersData);
     console.log(`✅ Created ${sellers.length} sellers`);
 
-    // Template listings data - yo sabai sellers ko lagi use huncha
+    // Template listings data
     const getListingsForSeller = (sellerId) => [
       {
         sellerId: sellerId,

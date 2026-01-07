@@ -15,7 +15,7 @@ const RentalReview = sequelize.define('RentalReview', {
   },
   comment: { type: DataTypes.TEXT, allowNull: false },
   productId: { 
-    type: DataTypes.INTEGER, 
+    type: DataTypes.UUID,  // ✅ Changed from INTEGER to UUID
     allowNull: false 
   }
 }, { 

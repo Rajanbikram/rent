@@ -56,10 +56,12 @@ const LoginPage = () => {
         } else if (response.data.user) {
           userData = response.data.user;
           console.log('👤 User data:', userData);
+        } else if (response.data.admin) {
+          userData = response.data.admin;
+          console.log('👤 Admin data:', userData);
         } else {
-          console.error('❌ No user/seller data in response!');
+          console.error('❌ No user/seller/admin data in response!');
           setError('Invalid response from server');
-          setLoading(false);
           return;
         }
         
@@ -70,26 +72,27 @@ const LoginPage = () => {
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('userRole', userData.role || formData.role);
         
+        // For admin, also store admin_token for admin-specific API calls
+        if ((userData.role || formData.role).toLowerCase() === 'admin') {
+          localStorage.setItem('admin_token', token);
+        }
+        
         console.log('💾 Saved to localStorage');
         console.log('💾 Token:', localStorage.getItem('token'));
         console.log('💾 User:', localStorage.getItem('user'));
         console.log('💾 Role:', localStorage.getItem('userRole'));
         
-        // ✅ UPDATED: Navigate based on role
+        // Navigate based on role
         const role = (userData.role || formData.role).toLowerCase();
+        console.log(`🚀 Navigating to ${role} dashboard...`);
         
-        if (role === 'seller') {
-          console.log('🚀 Navigating to seller dashboard...');
+        if (role === 'admin') {
+          navigate('/admin'); // AdminPages handles internal navigation
+        } else if (role === 'seller') {
           navigate('/seller/dashboard');
         } else if (role === 'renter') {
-          console.log('🚀 Navigating to rental dashboard...');
-          navigate('/rental');  // ✅ FIXED: Direct navigation to /rental
-        } else if (role === 'admin') {
-          console.log('🚀 Navigating to admin dashboard...');
-          alert(`Welcome ${userData.name || userData.fullName}!\n\nAdmin dashboard coming soon!`);
-          navigate('/');
+          navigate('/rental');
         } else {
-          console.log('🚀 Navigating to home...');
           navigate('/');
         }
       } else {
