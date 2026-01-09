@@ -3,7 +3,22 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
-// ✅ Generic register route (routes based on role)
+// ===================================================
+// SELLER ROUTES (Direct Access)
+// ===================================================
+router.post('/seller/register', authController.registerSeller);
+router.post('/seller/login', authController.loginSeller);
+
+// ===================================================
+// USER ROUTES (Renter/Admin - Direct Access)
+// ===================================================
+router.post('/user/register', authController.registerUser);
+router.post('/user/login', authController.loginUser);
+
+// ===================================================
+// GENERIC ROUTES (Smart Routing Based on Role)
+// ===================================================
+// Generic Register - Routes based on role in request body
 router.post('/register', async (req, res) => {
   const { email, role } = req.body;
   
@@ -21,17 +36,22 @@ router.post('/register', async (req, res) => {
   if (roleLower === 'seller') {
     console.log('→ Routing to seller registration');
     return authController.registerSeller(req, res);
-  } else {
+  } else if (roleLower === 'admin' || roleLower === 'renter') {
     console.log('→ Routing to user registration');
     return authController.registerUser(req, res);
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid role. Must be seller, admin, or renter'
+    });
   }
 });
 
-// ✅ Generic login route (routes based on role)
+// Generic Login - Routes based on role in request body
 router.post('/login', async (req, res) => {
   const { email, password, role } = req.body;
   
-  console.log('📧 Login request received:', { email, role });
+  console.log('🔐 Login request received:', { email, role });
   
   if (!email || !password || !role) {
     return res.status(400).json({
@@ -45,21 +65,23 @@ router.post('/login', async (req, res) => {
   if (roleLower === 'seller') {
     console.log('→ Routing to seller login');
     return authController.loginSeller(req, res);
-  } else {
+  } else if (roleLower === 'admin' || roleLower === 'renter') {
     console.log('→ Routing to user login');
     return authController.loginUser(req, res);
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid role. Must be seller, admin, or renter'
+    });
   }
 });
 
-// ✅ Specific Seller routes (optional - for direct access)
-router.post('/seller/register', authController.registerSeller);
-router.post('/seller/login', authController.loginSeller);
-
-// ✅ Specific User routes (optional - for direct access)
-router.post('/user/register', authController.registerUser);
-router.post('/user/login', authController.loginUser);
-
-// ✅ Protected route
+// ===================================================
+// PROTECTED ROUTES
+// ===================================================
 router.get('/me', authMiddleware, authController.getCurrentUser);
+router.post('/logout', authMiddleware, (req, res) => {
+  res.json({ success: true, message: 'Logged out successfully' });
+});
 
 module.exports = router;

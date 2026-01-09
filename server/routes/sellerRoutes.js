@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const sellerController = require('../controllers/sellerController'); // ← FIXED: import lai require ma change
+const sellerController = require('../controllers/sellerController');
 
 const { authMiddleware, isSellerMiddleware } = require('../middleware/authMiddleware');
 
@@ -17,6 +17,7 @@ router.put('/profile', sellerController.updateProfile);
 
 // Listings
 router.get('/listings', sellerController.getListings);
+router.post('/listings', sellerController.createListing); // ← NEW: Create listing route
 router.put('/listings/:id/toggle-status', sellerController.toggleListingStatus);
 
 // Messages

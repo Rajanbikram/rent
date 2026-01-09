@@ -5,19 +5,35 @@ const { Seller, User } = require('../models');
 // Seller Registration
 const registerSeller = async (req, res) => {
   try {
-    const { name, email, password, phone, bio } = req.body;
+    // 🔍 DEBUG: Log entire request body
+    console.log('🔍 Full Request Body:', JSON.stringify(req.body, null, 2));
+    
+    const { name, email, password, bio } = req.body;
 
-    console.log('📝 Seller registration attempt:', { email, name });
+    console.log('📝 Seller registration attempt:', { 
+      email, 
+      name,
+      hasName: !!name,
+      hasEmail: !!email,
+      hasPassword: !!password
+    });
 
-    if (!name || !email || !password || !phone) {
+    // Updated code (without phone)
+    if (!name || !email || !password) {
+      console.log('❌ Validation Failed! Missing fields:', {
+        name: name || 'MISSING',
+        email: email || 'MISSING',
+        password: password ? 'PROVIDED' : 'MISSING'
+      });
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields (name, email, password, phone)'
+        message: 'Please provide all required fields (name, email, password)'
       });
     }
 
     const existingSeller = await Seller.findOne({ where: { email } });
     if (existingSeller) {
+      console.log('❌ Seller already exists:', email);
       return res.status(400).json({
         success: false,
         message: 'Seller with this email already exists'
@@ -30,7 +46,6 @@ const registerSeller = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      phone,
       bio: bio || '',
       rating: 0,
       totalListings: 0,
@@ -39,7 +54,7 @@ const registerSeller = async (req, res) => {
       isActive: true
     });
 
-    console.log('✅ Seller created:', seller.email);
+    console.log('✅ Seller created successfully:', seller.email);
 
     const token = jwt.sign(
       { id: seller.id, email: seller.email, role: 'seller' },
@@ -55,12 +70,12 @@ const registerSeller = async (req, res) => {
         id: seller.id,
         name: seller.name,
         email: seller.email,
-        phone: seller.phone,
         role: 'seller'
       }
     });
   } catch (error) {
     console.error('❌ Seller registration error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Seller registration failed',
@@ -123,7 +138,6 @@ const loginSeller = async (req, res) => {
         id: seller.id,
         name: seller.name,
         email: seller.email,
-        phone: seller.phone,
         role: 'seller'
       }
     });
@@ -140,11 +154,26 @@ const loginSeller = async (req, res) => {
 // User Registration (Renter/Admin)
 const registerUser = async (req, res) => {
   try {
+    // 🔍 DEBUG: Log entire request body
+    console.log('🔍 Full Request Body:', JSON.stringify(req.body, null, 2));
+    
     const { fullName, email, password, role, isStudent } = req.body;
 
-    console.log('📝 User registration attempt:', { email, fullName, role });
+    console.log('📝 User registration attempt:', { 
+      email, 
+      fullName, 
+      role,
+      hasFullName: !!fullName,
+      hasEmail: !!email,
+      hasPassword: !!password
+    });
 
     if (!fullName || !email || !password) {
+      console.log('❌ Validation Failed! Missing fields:', {
+        fullName: fullName || 'MISSING',
+        email: email || 'MISSING',
+        password: password ? 'PROVIDED' : 'MISSING'
+      });
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields'
@@ -162,6 +191,7 @@ const registerUser = async (req, res) => {
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
+      console.log('❌ User already exists:', email);
       return res.status(400).json({
         success: false,
         message: 'User already exists'
@@ -200,6 +230,7 @@ const registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ User registration error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'User registration failed',

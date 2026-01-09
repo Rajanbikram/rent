@@ -8,9 +8,12 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node seeders/sync-users.js",
+    "seed":"node seeders/seed.js",
+    "seed:seller": "node seeders/sellerDashboard.js",
     "seed:admin": "node seeders/admin/adminSeeder.js",
     "seed:rental": "node seeders/rental/seedRentalData.js",
-    "seed:all": "node seeders/sync-users.js && node seeders/rental/seedRentalData.js && node seeders/admin/adminSeeder.js",
+    "seed:all": "node seeders/sync-users.js && node seeders/sellerDashboard.js && node seeders/rental/seedRentalData.js && node seeders/admin/adminSeeder.js",
+    "seed:undo": "npx sequelize-cli db:seed:undo:all",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -33,6 +36,7 @@
     "sequelize": "^6.35.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "sequelize-cli": "^6.6.2"
   }
 }

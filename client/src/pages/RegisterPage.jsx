@@ -79,18 +79,29 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      // Call backend API
-      const response = await authAPI.register({
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-        isStudent: formData.isStudent
-      });
+      let response;
+
+      // ✅ Route based on role
+      if (formData.role === 'seller') {
+        // Seller registration - use 'name' instead of 'fullName'
+        response = await authAPI.registerSeller({
+          name: formData.fullName,  // Backend expects 'name' for sellers
+          email: formData.email,
+          password: formData.password
+        });
+      } else {
+        // Admin/Renter registration
+        response = await authAPI.register({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+          isStudent: formData.isStudent
+        });
+      }
 
       if (response.data.success) {
         alert(`✅ Registration successful!\nWelcome ${formData.fullName}!\n\nPlease login with your credentials.`);
-        // Navigate to login page
         navigate('/login');
       }
     } catch (error) {
@@ -231,17 +242,20 @@ const RegisterPage = () => {
             {errors.agreeTerms && <span className="error-text">{errors.agreeTerms}</span>}
           </div>
 
-          <div className="checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="isStudent"
-                checked={formData.isStudent}
-                onChange={handleChange}
-              />
-              <span>I'm a student - verify ID later</span>
-            </label>
-          </div>
+          {/* Show isStudent only for renter role */}
+          {formData.role === 'renter' && (
+            <div className="checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="isStudent"
+                  checked={formData.isStudent}
+                  onChange={handleChange}
+                />
+                <span>I'm a student - verify ID later</span>
+              </label>
+            </div>
+          )}
 
           {/* Error Message */}
           {errors.submit && (

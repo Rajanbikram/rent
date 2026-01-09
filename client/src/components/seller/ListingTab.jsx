@@ -1,25 +1,32 @@
 import React from 'react';
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import ListingCard from './ListingCard';
 
 const ListingTab = ({ listings, searchQuery, onToggleStatus, showToast }) => {
-  const activeListings = listings.filter(l => l.status === 'active' || l.status === 'paused');
+  console.log('🔍 ListingTab received listings:', listings);
+  console.log('📊 Listings count:', listings?.length || 0);
+  
+  // ✅ FIXED: Only show 'active' status listings (remove paused ones)
+  const activeListings = listings.filter(l => l.status === 'active');
+  
+  console.log('✅ Active listings after filter:', activeListings.length);
   
   const filteredListings = activeListings.filter(listing => {
     const query = searchQuery.toLowerCase();
-    return listing.title.toLowerCase().includes(query) ||
-           listing.description.toLowerCase().includes(query);
+    return listing.title?.toLowerCase().includes(query) ||
+           listing.description?.toLowerCase().includes(query);
   });
+
+  console.log('🔎 Filtered listings:', filteredListings.length);
 
   const handleToggleStatus = async (listingId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(
-        `/api/seller/listings/${listingId}/toggle-status`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      console.log('🔄 Toggling status for listing ID:', listingId);
+      
+      const response = await api.put(`/seller/listings/${listingId}/toggle-status`);
+
+      console.log('✅ Toggle response:', response.data);
 
       if (response.data.success) {
         showToast(
@@ -27,10 +34,11 @@ const ListingTab = ({ listings, searchQuery, onToggleStatus, showToast }) => {
           response.data.message,
           'success'
         );
-        onToggleStatus();
+        onToggleStatus(); // This will refresh and hide paused listing
       }
     } catch (error) {
-      console.error('Toggle status error:', error);
+      console.error('❌ Toggle status error:', error);
+      console.error('Error response:', error.response?.data);
       showToast('Error', 'Failed to update listing status', 'error');
     }
   };

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
 import { rentalAPI } from '../services/api';
 import { authService } from '../services/authService';
 
@@ -28,10 +27,31 @@ export const RentalProvider = ({ children, showToast }) => {
   const fetchProducts = async (filters = {}) => {
     try {
       setLoading(true);
-      const { data } = await rentalAPI.getProducts(filters);
-      setProducts(data);
+      console.log('📦 Fetching products with filters:', filters);
+      
+      const response = await rentalAPI.getProducts(filters);
+      console.log('📦 API Response:', response.data);
+      
+      // ✅ FIXED: Handle both response formats
+      if (response.data.success) {
+        // New format: { success: true, data: [...] }
+        setProducts(response.data.data || []);
+        console.log('✅ Products loaded:', response.data.data?.length || 0);
+      } else if (Array.isArray(response.data)) {
+        // Old format: [...]
+        setProducts(response.data);
+        console.log('✅ Products loaded:', response.data.length);
+      } else {
+        console.warn('⚠️ Unexpected response format:', response.data);
+        setProducts([]);
+      }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('❌ Error fetching products:', error);
+      console.error('❌ Error response:', error.response?.data);
+      setProducts([]);
+      if (showToast) {
+        showToast('Error', 'Failed to load products', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -39,34 +59,66 @@ export const RentalProvider = ({ children, showToast }) => {
 
   const fetchCart = async () => {
     try {
-      const { data } = await rentalAPI.getCart();
-      setCart(data);
+      const response = await rentalAPI.getCart();
+      console.log('🛒 Cart response:', response.data);
+      
+      // Handle response format
+      if (response.data.success) {
+        setCart(response.data.data || []);
+      } else if (Array.isArray(response.data)) {
+        setCart(response.data);
+      } else {
+        setCart([]);
+      }
     } catch (error) {
-      console.error('Error fetching cart:', error);
+      console.error('❌ Error fetching cart:', error);
+      // Don't show error toast for cart - user might not be logged in
+      setCart([]);
     }
   };
 
   const fetchFavorites = async () => {
     try {
-      const { data } = await rentalAPI.getFavorites();
-      setFavorites(data.map(f => f.productId));
+      const response = await rentalAPI.getFavorites();
+      console.log('❤️ Favorites response:', response.data);
+      
+      // Handle response format
+      let favoritesData = [];
+      if (response.data.success) {
+        favoritesData = response.data.data || [];
+      } else if (Array.isArray(response.data)) {
+        favoritesData = response.data;
+      }
+      
+      setFavorites(favoritesData.map(f => f.productId || f.id));
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      console.error('❌ Error fetching favorites:', error);
+      setFavorites([]);
     }
   };
 
   const fetchRentals = async () => {
     try {
-      const { data } = await rentalAPI.getRentals();
-      setRentals(data);
+      const response = await rentalAPI.getRentals();
+      console.log('📋 Rentals response:', response.data);
+      
+      // Handle response format
+      if (response.data.success) {
+        setRentals(response.data.data || []);
+      } else if (Array.isArray(response.data)) {
+        setRentals(response.data);
+      } else {
+        setRentals([]);
+      }
     } catch (error) {
-      console.error('Error fetching rentals:', error);
+      console.error('❌ Error fetching rentals:', error);
+      setRentals([]);
     }
   };
 
   const addToCart = async (productId, quantity = 1, tenure = 3) => {
     try {
-      // ✅ Check authentication and role
+      // Check authentication and role
       const token = localStorage.getItem('token');
       const userRole = localStorage.getItem('userRole');
       
@@ -88,12 +140,13 @@ export const RentalProvider = ({ children, showToast }) => {
       await fetchCart();
       
       console.log('✅ Added to cart successfully');
+      if (showToast) showToast('Added to cart', 'Product added successfully', 'success');
       return true;
     } catch (error) {
       console.error('❌ Error adding to cart:', error);
       console.error('❌ Error response:', error.response?.data);
       
-      // ✅ Better error handling
+      // Better error handling
       if (error.response?.status === 401) {
         if (showToast) showToast('Session expired', 'Please login again', 'error');
       } else if (error.response?.status === 403) {
@@ -110,6 +163,7 @@ export const RentalProvider = ({ children, showToast }) => {
     try {
       await rentalAPI.updateCartItem(id, data);
       await fetchCart();
+      if (showToast) showToast('Updated', 'Cart item updated', 'success');
     } catch (error) {
       console.error('Error updating cart:', error);
       if (showToast) showToast('Error', 'Failed to update cart item', 'error');
@@ -130,7 +184,11 @@ export const RentalProvider = ({ children, showToast }) => {
   const toggleFavorite = async (productId) => {
     try {
       const { data } = await rentalAPI.toggleFavorite(productId);
-      if (data.isFavorite) {
+      
+      // Handle response format
+      const isFavorite = data.success ? data.data?.isFavorite : data.isFavorite;
+      
+      if (isFavorite) {
         setFavorites([...favorites, productId]);
         if (showToast) showToast('Added to favorites', 'Product added to your favorites', 'success');
       } else {
@@ -147,14 +205,19 @@ export const RentalProvider = ({ children, showToast }) => {
     const exists = compareList.find(p => p.id === product.id);
     if (exists) {
       setCompareList(compareList.filter(p => p.id !== product.id));
+      if (showToast) showToast('Removed', 'Product removed from comparison', 'success');
     } else if (compareList.length < 3) {
       setCompareList([...compareList, product]);
+      if (showToast) showToast('Added', 'Product added to comparison', 'success');
     } else {
       if (showToast) showToast('Limit reached', 'You can compare up to 3 products', 'error');
     }
   };
 
-  const clearCompare = () => setCompareList([]);
+  const clearCompare = () => {
+    setCompareList([]);
+    if (showToast) showToast('Cleared', 'Comparison list cleared', 'success');
+  };
 
   const createRental = async (data) => {
     try {
@@ -184,10 +247,23 @@ export const RentalProvider = ({ children, showToast }) => {
   };
 
   const value = {
-    products, cart, favorites, rentals, compareList, loading, user,
-    fetchProducts, addToCart, updateCartItem, removeFromCart,
-    toggleFavorite, toggleCompare, clearCompare,
-    createRental, renewRental, setUser
+    products, 
+    cart, 
+    favorites, 
+    rentals, 
+    compareList, 
+    loading, 
+    user,
+    fetchProducts, 
+    addToCart, 
+    updateCartItem, 
+    removeFromCart,
+    toggleFavorite, 
+    toggleCompare, 
+    clearCompare,
+    createRental, 
+    renewRental, 
+    setUser
   };
 
   return <RentalContext.Provider value={value}>{children}</RentalContext.Provider>;

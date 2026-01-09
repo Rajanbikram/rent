@@ -21,10 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     bio: {
       type: DataTypes.TEXT
     },
@@ -61,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     tableName: 'sellers'
   });
-
+  
   Seller.associate = (models) => {
     Seller.hasMany(models.Listing, {
       foreignKey: 'sellerId',
@@ -76,6 +72,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'rentalHistory'
     });
   };
-
+  
   return Seller;
 };

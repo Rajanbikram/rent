@@ -7,7 +7,6 @@ const getDashboard = async (req, res) => {
 
     console.log('📊 getDashboard called for seller ID:', sellerId);
 
-    // ✅ FIXED: Get seller from Seller model (not User model)
     const seller = await Seller.findByPk(sellerId);
 
     if (!seller) {
@@ -20,7 +19,6 @@ const getDashboard = async (req, res) => {
 
     console.log('✅ Seller found:', seller.email);
 
-    // Get all listings for this seller
     let listings = [];
     try {
       listings = await Listing.findAll({
@@ -32,7 +30,6 @@ const getDashboard = async (req, res) => {
       listings = [];
     }
 
-    // Get messages
     let messages = [];
     try {
       messages = await Message.findAll({
@@ -46,7 +43,6 @@ const getDashboard = async (req, res) => {
       messages = [];
     }
 
-    // Get rental history
     let rentalHistory = [];
     try {
       rentalHistory = await RentalHistory.findAll({
@@ -60,7 +56,6 @@ const getDashboard = async (req, res) => {
       rentalHistory = [];
     }
 
-    // Get earnings
     let earnings = [];
     try {
       earnings = await Earning.findAll({
@@ -73,7 +68,6 @@ const getDashboard = async (req, res) => {
       earnings = [];
     }
 
-    // Calculate stats
     const stats = {
       totalListings: listings.length,
       activeListings: listings.filter(l => l.status === 'active').length,
@@ -93,7 +87,6 @@ const getDashboard = async (req, res) => {
         id: seller.id,
         name: seller.name,
         email: seller.email,
-        phone: seller.phone,
         bio: seller.bio,
         avatar: seller.avatar,
         bankName: seller.bankName,
@@ -147,7 +140,6 @@ const getProfile = async (req, res) => {
         id: seller.id,
         name: seller.name,
         email: seller.email,
-        phone: seller.phone,
         bio: seller.bio,
         avatar: seller.avatar,
         bankName: seller.bankName,
@@ -172,7 +164,7 @@ const getProfile = async (req, res) => {
 // Update seller profile
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, bio, avatar, bankName, bankAccount } = req.body;
+    const { name, bio, avatar, bankName, bankAccount } = req.body;
 
     const seller = await Seller.findByPk(req.user.id);
 
@@ -185,7 +177,6 @@ const updateProfile = async (req, res) => {
 
     await seller.update({
       name: name || seller.name,
-      phone: phone || seller.phone,
       bio: bio || seller.bio,
       avatar: avatar || seller.avatar,
       bankName: bankName || seller.bankName,
@@ -224,6 +215,132 @@ const getListings = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get listings',
+      error: error.message
+    });
+  }
+};
+
+// ✅ CREATE NEW LISTING WITH PRICE-BASED STATUS
+const createListing = async (req, res) => {
+  try {
+    const {
+      productName,
+      description,
+      category,
+      tags,
+      deliveryZones,
+      pricePerMonth,
+      tenureOptions,
+      images
+    } = req.body;
+
+    const sellerId = req.user.id;
+
+    console.log('📝 Creating listing for seller:', sellerId);
+    console.log('📦 Received data:', { productName, category, pricePerMonth });
+
+    // Validate required fields
+    if (!productName || !description || !category || !pricePerMonth) {
+      console.log('❌ Validation failed - missing required fields');
+      return res.status(400).json({
+        success: false,
+        message: 'Product name, description, category, and price are required'
+      });
+    }
+
+    // Validate price is a positive number
+    const price = parseFloat(pricePerMonth);
+    console.log('💰 Price received:', pricePerMonth, '→ Parsed:', price);
+    
+    if (isNaN(price) || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price must be a positive number'
+      });
+    }
+
+    // Get seller info
+    const seller = await Seller.findByPk(sellerId);
+    
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: 'Seller not found'
+      });
+    }
+
+    // ✅ PRICE-BASED STATUS LOGIC
+    // If price < 10,000 → active (auto-approved)
+    // If price >= 10,000 → pending (needs admin approval)
+    let listingStatus;
+
+    console.log('🔍 Checking price:', price, 'vs 10000');
+    console.log('🔍 price < 10000?', price < 10000);
+    console.log('🔍 typeof price:', typeof price);
+
+    if (price < 10000) {
+      listingStatus = 'active';
+      console.log('✅ AUTO-APPROVED: Price', price, '< NPR 10,000');
+    } else {
+      listingStatus = 'pending';
+      console.log('⏳ NEEDS ADMIN APPROVAL: Price', price, '>= NPR 10,000');
+    }
+    
+    console.log('📝 Final status will be:', listingStatus);
+
+    // Create listing
+    const newListing = await Listing.create({
+      sellerId,
+      title: productName,
+      description,
+      category,
+      tags: Array.isArray(tags) ? tags : [],
+      deliveryZones: Array.isArray(deliveryZones) ? deliveryZones : [],
+      pricePerMonth: price,
+      tenureOptions: tenureOptions || {
+        threeMonths: true,
+        sixMonths: false,
+        twelveMonths: false
+      },
+      tenurePricing: {
+        threeMonths: price,
+        sixMonths: Math.round(price * 0.92),
+        twelveMonths: Math.round(price * 0.85)
+      },
+      images: Array.isArray(images) ? images : [],
+      status: listingStatus,
+      views: 0,
+      rents: 0
+    });
+
+    console.log('✅ Listing created with ID:', newListing.id);
+    console.log('✅ Listing status:', newListing.status);
+
+    // Update seller's total listings count
+    const sellerListingCount = seller.totalListings || 0;
+    try {
+      await seller.update({
+        totalListings: sellerListingCount + 1
+      });
+      console.log('✅ Updated seller listing count:', sellerListingCount + 1);
+    } catch (err) {
+      console.log('⚠️ Could not update seller listings count:', err.message);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: listingStatus === 'active' 
+        ? 'Listing created and published successfully' 
+        : 'Listing created and sent for admin approval',
+      data: newListing
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating listing:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create listing',
       error: error.message
     });
   }
@@ -410,6 +527,7 @@ module.exports = {
   getProfile,
   updateProfile,
   getListings,
+  createListing,
   toggleListingStatus,
   getMessages,
   replyToMessage,

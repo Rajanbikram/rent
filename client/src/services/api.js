@@ -35,6 +35,22 @@ api.interceptors.response.use(
   }
 );
 
+// Auth API
+export const authAPI = {
+  // ✅ Seller Auth
+  registerSeller: (userData) => api.post('/auth/seller/register', userData),
+  loginSeller: (credentials) => api.post('/auth/seller/login', credentials),
+  
+  // ✅ User/Renter/Admin Auth
+  register: (userData) => api.post('/auth/register', userData),
+  login: (credentials) => api.post('/auth/login', credentials),
+  
+  // Common
+  logout: () => api.post('/auth/logout'),
+  getCurrentUser: () => api.get('/auth/me'),
+  updateProfile: (data) => api.put('/auth/profile', data)
+};
+
 // Seller API
 export const sellerAPI = {
   getDashboard: () => api.get('/seller/dashboard'),
@@ -49,7 +65,7 @@ export const sellerAPI = {
   getEarnings: () => api.get('/seller/earnings')
 };
 
-// ✅ NEW: Rental API (for furniture/appliance rental system)
+// Rental API
 export const rentalAPI = {
   // Rental Products
   getProducts: (params) => api.get('/rental/products', { params }),
@@ -76,7 +92,7 @@ export const rentalAPI = {
   renewRental: (id) => api.put(`/rental/rentals/${id}/renew`)
 };
 
-// Product API (for general marketplace)
+// Product API
 export const productAPI = {
   getAll: () => api.get('/products'),
   getById: (id) => api.get(`/products/${id}`),
@@ -98,16 +114,7 @@ export const dealAPI = {
   getActive: () => api.get('/deals/active')
 };
 
-// Auth API
-export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  logout: () => api.post('/auth/logout'),
-  getCurrentUser: () => api.get('/auth/me'),
-  updateProfile: (data) => api.put('/auth/profile', data)
-};
-
-// Cart API (for general marketplace)
+// Cart API
 export const cartAPI = {
   getCart: () => api.get('/cart'),
   addItem: (productId, quantity) => api.post('/cart/items', { productId, quantity }),
@@ -116,7 +123,7 @@ export const cartAPI = {
   clearCart: () => api.delete('/cart')
 };
 
-// Order API (for general marketplace)
+// Order API
 export const orderAPI = {
   create: (orderData) => api.post('/orders', orderData),
   getAll: () => api.get('/orders'),
@@ -125,7 +132,7 @@ export const orderAPI = {
   cancel: (id) => api.delete(`/orders/${id}`)
 };
 
-// Wishlist API (for general marketplace)
+// Wishlist API
 export const wishlistAPI = {
   getAll: () => api.get('/wishlist'),
   add: (productId) => api.post('/wishlist', { productId }),
