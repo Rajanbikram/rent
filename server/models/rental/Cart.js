@@ -1,3 +1,4 @@
+// server/models/rental/Cart.js
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../../config/database');
 
@@ -8,14 +9,18 @@ const RentalCart = sequelize.define('RentalCart', {
     primaryKey: true 
   },
   userId: { 
-    type: DataTypes.INTEGER,  // ✅ INTEGER (matches users.id)
+    type: DataTypes.INTEGER,
     allowNull: false,
     field: 'user_id'
   },
   productId: { 
-    type: DataTypes.UUID,  // ✅ UUID (matches rental_products.id)
+    type: DataTypes.UUID,
     allowNull: false,
-    field: 'product_id'
+    field: 'product_id',
+    references: {
+      model: 'listings',
+      key: 'id'
+    }
   },
   quantity: { 
     type: DataTypes.INTEGER, 
@@ -23,11 +28,13 @@ const RentalCart = sequelize.define('RentalCart', {
   },
   tenure: { 
     type: DataTypes.INTEGER, 
-    defaultValue: 3 
+    defaultValue: 3,
+    comment: 'Rental duration in months (3, 6, or 12)'
   }
 }, { 
   tableName: 'rental_carts',
-  underscored: true
+  underscored: true,
+  timestamps: true
 });
 
 module.exports = RentalCart;

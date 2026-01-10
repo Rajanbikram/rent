@@ -38,7 +38,10 @@ const Cart = ({ isOpen, onClose, onCheckout, showToast }) => {
   };
 
   const calculateTotals = () => {
-    const subtotal = cart.reduce((sum, item) => sum + (item.product.pricePerMonth * item.tenure * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => {
+      const price = item.product?.pricePerMonth || item.product?.price || 0;
+      return sum + (price * item.tenure * item.quantity);
+    }, 0);
     let discount = subtotal * (appliedDiscount / 100);
     if (studentDiscount) discount += subtotal * 0.1;
     return { subtotal, discount, total: subtotal - discount };
@@ -80,51 +83,65 @@ const Cart = ({ isOpen, onClose, onCheckout, showToast }) => {
         ) : (
           <>
             <div className="cart-items">
-              {cart.map(item => (
-                <div key={item.id} className="cart-item">
-                  <div className="cart-item-content">
-                    <div className="cart-item-image">
-                      <img src={item.product.image} alt={item.product.name} />
-                    </div>
-                    <div className="cart-item-details">
-                      <div className="cart-item-header">
-                        <h4>{item.product.name}</h4>
-                        <button className="cart-item-remove" onClick={() => removeFromCart(item.id)}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 6h18"/>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                          </svg>
-                        </button>
+              {cart.map(item => {
+                // ✅ Handle different data structures
+                const product = item.product || {};
+                const productImage = product.images?.[0] || product.image || '/placeholder.png';
+                const productName = product.title || product.name || 'Product';
+                const productPrice = product.pricePerMonth || product.price || 0;
+                
+                return (
+                  <div key={item.id} className="cart-item">
+                    <div className="cart-item-content">
+                      <div className="cart-item-image">
+                        <img 
+                          src={productImage} 
+                          alt={productName}
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
+                          }}
+                        />
                       </div>
-                      <div className="cart-item-tenure">
-                        <select className="input select" value={item.tenure} onChange={(e) => handleTenureChange(item, e.target.value)}>
-                          <option value="3">3 months</option>
-                          <option value="6">6 months</option>
-                          <option value="12">12 months</option>
-                        </select>
-                      </div>
-                      <div className="cart-item-footer">
-                        <div className="quantity-controls">
-                          <button className="quantity-btn" onClick={() => handleQuantity(item, -1)}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M5 12h14"/>
-                            </svg>
-                          </button>
-                          <span className="quantity-value">{item.quantity}</span>
-                          <button className="quantity-btn" onClick={() => handleQuantity(item, 1)}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M5 12h14"/>
-                              <path d="M12 5v14"/>
+                      <div className="cart-item-details">
+                        <div className="cart-item-header">
+                          <h4>{productName}</h4>
+                          <button className="cart-item-remove" onClick={() => removeFromCart(item.id)}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18"/>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                             </svg>
                           </button>
                         </div>
-                        <span className="cart-item-price">₹{(item.product.pricePerMonth * item.tenure * item.quantity).toLocaleString('en-IN')}</span>
+                        <div className="cart-item-tenure">
+                          <select className="input select" value={item.tenure} onChange={(e) => handleTenureChange(item, e.target.value)}>
+                            <option value="3">3 months</option>
+                            <option value="6">6 months</option>
+                            <option value="12">12 months</option>
+                          </select>
+                        </div>
+                        <div className="cart-item-footer">
+                          <div className="quantity-controls">
+                            <button className="quantity-btn" onClick={() => handleQuantity(item, -1)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14"/>
+                              </svg>
+                            </button>
+                            <span className="quantity-value">{item.quantity}</span>
+                            <button className="quantity-btn" onClick={() => handleQuantity(item, 1)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14"/>
+                                <path d="M12 5v14"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <span className="cart-item-price">₹{(productPrice * item.tenure * item.quantity).toLocaleString('en-IN')}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="cart-promo">

@@ -73,16 +73,21 @@ const ActiveRentals = ({ showToast }) => {
         const days = getDaysRemaining(rental.endDate);
         const currentIdx = steps.indexOf(rental.status);
         
+        // ✅ Safe access with fallbacks
+        const product = rental.product || {};
+        const productImage = product.images?.[0] || '/placeholder-product.jpg';
+        const productName = product.title || 'Product';
+        
         return (
           <div key={rental.id} className="active-rental-card">
             <div className="rental-content">
               <div className="rental-image">
-                <img src={rental.product.image} alt={rental.product.name} />
+                <img src={productImage} alt={productName} />
               </div>
               <div className="rental-details">
                 <div className="rental-header">
                   <div>
-                    <h3>{rental.product.name}</h3>
+                    <h3>{productName}</h3>
                     <p>{rental.tenure} months tenure</p>
                   </div>
                   <span className={`badge ${statusBadges[rental.status]}`}>

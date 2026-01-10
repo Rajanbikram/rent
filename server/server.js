@@ -64,19 +64,16 @@ app.get('/api/health', async (req, res) => {
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // Rental Routes
-try {
-  app.use('/api/auth', require('./routes/auth'));
-  app.use('/api/seller', require('./routes/sellerRoutes'));
-  app.use('/api/products', require('./routes/products'));
-  app.use('/api/deals', require('./routes/deals'));
-  app.use('/api/rental/products', require('./routes/rental/products'));
-  app.use('/api/rental/cart', require('./routes/rental/cart'));
-  app.use('/api/rental/favorites', require('./routes/rental/favorites'));
-  app.use('/api/rental/rentals', require('./routes/rental/rentals'));
-  console.log('✅ Rental routes loaded');
-} catch (err) {
-  console.log('⚠️  Rental routes not found');
-}
+// Rental Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/seller', require('./routes/sellerRoutes'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/deals', require('./routes/deals'));
+app.use('/api/rental/products', require('./routes/rental/products'));
+app.use('/api/rental/cart', require('./routes/rental/Cart'));
+app.use('/api/rental/favorites', require('./routes/rental/favorites'));
+app.use('/api/rental', require('./routes/rental/rentals')); 
+console.log('✅ Rental routes loaded');
 
 // Admin Routes
 app.use('/api/admin/auth', require('./routes/admin/adminAuthRoutes'));

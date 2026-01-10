@@ -3,12 +3,14 @@ const router = express.Router();
 const rentalController = require('../../controllers/rental/rentalController');
 const { authMiddleware, isRenterMiddleware } = require('../../middleware/authMiddleware');
 
+// Apply middleware
 router.use(authMiddleware);
 router.use(isRenterMiddleware);
 
-router.get('/', rentalController.getRentals);
-router.post('/', rentalController.createRental);
-router.put('/:id/status', rentalController.updateRentalStatus);
-router.put('/:id/renew', rentalController.renewRental);
+// Routes - NO '/rentals' prefix here!
+router.get('/rentals', rentalController.getRentals);
+router.post('/rentals', rentalController.createRental);
+router.put('/rentals/:id/status', rentalController.updateRentalStatus);
+router.put('/rentals/:id/renew', rentalController.renewRental);
 
 module.exports = router;
