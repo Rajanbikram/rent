@@ -67,7 +67,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 // Auth Routes
 app.use('/api/auth', require('./routes/auth'));
 
-// ✅ FIXED: Seller Routes - Make sure path is correct
+// Seller Routes
 try {
   app.use('/api/seller', require('./routes/sellerRoutes'));
   console.log('✅ Seller routes loaded');

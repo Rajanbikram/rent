@@ -10,7 +10,7 @@ router.use(isSellerMiddleware);
 // Dashboard
 router.get('/dashboard', sellerController.getDashboard);
 
-// Profile - ✅ FIXED: Added GET and PUT routes
+// Profile
 router.get('/profile', sellerController.getProfile);
 router.put('/profile', sellerController.updateProfile);
 
@@ -18,11 +18,6 @@ router.put('/profile', sellerController.updateProfile);
 router.get('/listings', sellerController.getListings);
 router.post('/listings', sellerController.createListing);
 router.put('/listings/:id/toggle-status', sellerController.toggleListingStatus);
-
-// Messages
-router.get('/messages', sellerController.getMessages);
-router.put('/messages/:id/reply', sellerController.replyToMessage);
-router.put('/messages/:id/read', sellerController.markMessageRead);
 
 // Rental History
 router.get('/rental-history', sellerController.getRentalHistory);

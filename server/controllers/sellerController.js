@@ -1,4 +1,4 @@
-const { Seller, Listing, Message, RentalHistory, Earning } = require('../models');
+const { Seller, Listing, RentalHistory, Earning } = require('../models');
 
 // Get seller dashboard data
 const getDashboard = async (req, res) => {
@@ -28,19 +28,6 @@ const getDashboard = async (req, res) => {
     } catch (error) {
       console.log('⚠️ Error fetching listings:', error.message);
       listings = [];
-    }
-
-    let messages = [];
-    try {
-      messages = await Message.findAll({
-        where: { sellerId },
-        order: [['createdAt', 'DESC']],
-        limit: 50
-      });
-      console.log('💬 Messages found:', messages.length);
-    } catch (error) {
-      console.log('⚠️ Error fetching messages:', error.message);
-      messages = [];
     }
 
     let rentalHistory = [];
@@ -74,7 +61,6 @@ const getDashboard = async (req, res) => {
       pendingListings: listings.filter(l => l.status === 'pending').length,
       pausedListings: listings.filter(l => l.status === 'paused').length,
       totalEarnings: parseFloat(seller.totalEarnings || 0),
-      unreadMessages: messages.filter(m => !m.isRead).length,
       totalRentals: rentalHistory.length,
       ongoingRentals: rentalHistory.filter(r => r.status === 'ongoing').length,
       completedRentals: rentalHistory.filter(r => r.status === 'completed').length
@@ -98,7 +84,6 @@ const getDashboard = async (req, res) => {
         isActive: seller.isActive
       },
       listings,
-      messages,
       rentalHistory,
       earnings,
       stats
@@ -380,100 +365,6 @@ const toggleListingStatus = async (req, res) => {
   }
 };
 
-// Get messages
-const getMessages = async (req, res) => {
-  try {
-    const messages = await Message.findAll({
-      where: { sellerId: req.user.id },
-      order: [['createdAt', 'DESC']]
-    });
-
-    res.json({
-      success: true,
-      data: messages
-    });
-  } catch (error) {
-    console.error('Get messages error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get messages',
-      error: error.message
-    });
-  }
-};
-
-// Reply to message
-const replyToMessage = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { reply } = req.body;
-
-    const message = await Message.findOne({
-      where: { id, sellerId: req.user.id }
-    });
-
-    if (!message) {
-      return res.status(404).json({
-        success: false,
-        message: 'Message not found'
-      });
-    }
-
-    await message.update({ 
-      response: reply, 
-      isRead: true,
-      respondedAt: new Date()
-    });
-
-    res.json({
-      success: true,
-      message: 'Reply sent successfully',
-      data: message
-    });
-  } catch (error) {
-    console.error('Reply message error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send reply',
-      error: error.message
-    });
-  }
-};
-
-// Mark message as read
-const markMessageRead = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const message = await Message.findOne({
-      where: { id, sellerId: req.user.id }
-    });
-
-    if (!message) {
-      return res.status(404).json({
-        success: false,
-        message: 'Message not found'
-      });
-    }
-
-    await message.update({ isRead: true });
-
-    res.json({
-      success: true,
-      message: 'Message marked as read',
-      data: message
-    });
-  } catch (error) {
-    console.error('Mark read error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to mark message as read',
-      error: error.message
-    });
-  }
-};
-
-// Get rental history
 // Get rental history - ✅ UPDATED to fetch from actual Rental table
 const getRentalHistory = async (req, res) => {
   try {
@@ -593,9 +484,6 @@ module.exports = {
   getListings,
   createListing,
   toggleListingStatus,
-  getMessages,
-  replyToMessage,
-  markMessageRead,
   getRentalHistory,
   getEarnings
 };

@@ -4,14 +4,12 @@ const Sidebar = ({ currentTab, onTabChange, stats = {}, onAddListing }) => {
   // Default values for stats to prevent undefined errors
   const safeStats = {
     pendingListings: stats?.pendingListings || 0,
-    unreadMessages: stats?.unreadMessages || 0,
     ...stats
   };
 
   const navItems = [
     { id: 'listings', icon: '📦', label: 'My Listings' },
     { id: 'pending', icon: '⏱️', label: 'Pending Approvals', badge: safeStats.pendingListings },
-    { id: 'messages', icon: '💬', label: 'Messages', badge: safeStats.unreadMessages },
     { id: 'earnings', icon: '📈', label: 'Earnings' },
     { id: 'history', icon: '📜', label: 'Rental History' },
     { id: 'profile', icon: '👤', label: 'Profile' }

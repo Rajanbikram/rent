@@ -5,7 +5,6 @@ import Sidebar from '../components/seller/Sidebar';
 import Header from '../components/seller/Header';
 import ListingTab from '../components/seller/ListingTab';
 import PendingTab from '../components/seller/PendingTab';
-import MessagesTab from '../components/seller/MessagesTab';
 import EarningsTab from '../components/seller/EarningsTab';
 import HistoryTab from '../components/seller/HistoryTab';
 import ProfileTab from '../components/seller/ProfileTab';
@@ -198,7 +197,9 @@ const SellerDashboard = () => {
     );
   }
 
-  const { seller, listings, messages, rentalHistory, earnings, stats, sellerRentals } = dashboardData;
+
+
+const { seller, listings, rentalHistory, earnings, stats, sellerRentals } = dashboardData;
 
   console.log('🎨 Rendering dashboard with:', {
     listingsCount: listings?.length || 0,
@@ -239,15 +240,6 @@ const SellerDashboard = () => {
           {currentTab === 'pending' && (
             <PendingTab
               listings={(listings || []).filter(l => l.status === 'pending')}
-              showToast={showToast}
-            />
-          )}
-
-          {currentTab === 'messages' && (
-            <MessagesTab
-              messages={messages || []}
-              onReply={fetchDashboardData}
-              onMarkRead={fetchDashboardData}
               showToast={showToast}
             />
           )}
