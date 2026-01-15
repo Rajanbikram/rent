@@ -1,7 +1,8 @@
 const Rental = require('../../models/rental/Rental');
-const { Listing, Seller } = require('../../models');
+const { Listing, Seller, User } = require('../../models');
 const RentalCart = require('../../models/rental/Cart');
 
+// Renter's rental history
 exports.getRentals = async (req, res) => {
   try {
     console.log('📋 Fetching rentals for user:', req.user.id);
@@ -11,7 +12,6 @@ exports.getRentals = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
     
-    // ✅ Manually fetch product data for each rental
     const rentalsWithProducts = await Promise.all(
       rentals.map(async (rental) => {
         const product = await Listing.findByPk(rental.productId, {
@@ -39,7 +39,6 @@ exports.getRentals = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error fetching rentals:', error);
-    console.error('Error details:', error.message);
     res.status(500).json({ 
       success: false,
       error: error.message 
@@ -47,6 +46,49 @@ exports.getRentals = async (req, res) => {
   }
 };
 
+// ✅ Seller's rental history
+exports.getSellerRentals = async (req, res) => {
+  try {
+    console.log('📋 Fetching seller rentals for seller:', req.user.id);
+    
+    const rentals = await Rental.findAll({ 
+      where: { sellerId: req.user.id },
+      order: [['createdAt', 'DESC']]
+    });
+    
+    console.log('📦 Found', rentals.length, 'rentals for seller');
+    
+    const rentalsWithDetails = await Promise.all(
+      rentals.map(async (rental) => {
+        const product = await Listing.findByPk(rental.productId);
+        const renter = await User.findByPk(rental.userId, {
+          attributes: ['id', 'fullName', 'email']
+        });
+        
+        return {
+          ...rental.toJSON(),
+          product: product ? product.toJSON() : null,
+          renter: renter ? renter.toJSON() : null
+        };
+      })
+    );
+    
+    console.log('✅ Seller rentals found:', rentalsWithDetails.length);
+    
+    res.json({
+      success: true,
+      data: rentalsWithDetails
+    });
+  } catch (error) {
+    console.error('❌ Error fetching seller rentals:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+};
+
+// ✅ UPDATED - Create rental with seller_id
 exports.createRental = async (req, res) => {
   try {
     const { productId, tenure, address, paymentMethod } = req.body;
@@ -54,7 +96,6 @@ exports.createRental = async (req, res) => {
     
     console.log('📝 Creating rental:', { userId, productId, tenure, address });
     
-    // Find listing
     const listing = await Listing.findByPk(productId);
     
     if (!listing) {
@@ -71,13 +112,27 @@ exports.createRental = async (req, res) => {
       });
     }
     
+    // ✅ Get seller_id from listing
+    const sellerId = listing.sellerId;
+    console.log('✅ Seller ID from listing:', sellerId);
+    
+    if (!sellerId) {
+      console.error('❌ Listing has no seller_id!');
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid listing - no seller associated'
+      });
+    }
+    
     const startDate = new Date();
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + parseInt(tenure));
     
+    // ✅ Include sellerId when creating rental
     const rental = await Rental.create({
       userId,
       productId,
+      sellerId,  // ✅ IMPORTANT - Save seller_id
       startDate,
       endDate,
       tenure: parseInt(tenure),
@@ -88,7 +143,7 @@ exports.createRental = async (req, res) => {
       paymentMethod: paymentMethod || 'cash'
     });
     
-    console.log('✅ Rental created successfully:', rental.id);
+    console.log('✅ Rental created successfully with seller_id:', rental.id, 'Seller:', rental.sellerId);
     
     // Clear cart item
     try {
@@ -107,7 +162,6 @@ exports.createRental = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error creating rental:', error);
-    console.error('Error details:', error.message);
     res.status(500).json({ 
       success: false,
       error: error.message 
@@ -147,7 +201,6 @@ exports.updateRentalStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error updating rental:', error);
-    console.error('Error details:', error.message);
     res.status(500).json({ 
       success: false,
       error: error.message 
@@ -192,7 +245,6 @@ exports.renewRental = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error renewing rental:', error);
-    console.error('Error details:', error.message);
     res.status(500).json({ 
       success: false,
       error: error.message 

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { useRental } from '../contexts/RentalContext';  // ✅ Import useRental
 import '../styles/LoginPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { clearAllData, refetchUserData } = useRental();  // ✅ Get both functions
   
   const [formData, setFormData] = useState({
     email: '',
@@ -36,6 +38,10 @@ const LoginPage = () => {
 
     try {
       console.log('🔄 Attempting login...', formData);
+      
+      // ✅ Clear old user data BEFORE login
+      console.log('🧹 Clearing previous user data...');
+      clearAllData();
       
       const response = await authAPI.login({
         email: formData.email,
@@ -87,11 +93,17 @@ const LoginPage = () => {
         console.log(`🚀 Navigating to ${role} dashboard...`);
         
         if (role === 'admin') {
-          navigate('/admin'); // AdminPages handles internal navigation
+          navigate('/admin');
         } else if (role === 'seller') {
           navigate('/seller/dashboard');
         } else if (role === 'renter') {
           navigate('/rental');
+          
+          // ✅ NEW: Refetch user data after navigation
+          setTimeout(() => {
+            console.log('🔄 Triggering data refetch for renter...');
+            refetchUserData();
+          }, 500);
         } else {
           navigate('/');
         }

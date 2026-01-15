@@ -46,6 +46,7 @@ app.get('/', (req, res) => {
     endpoints: {
       admin: '/api/admin/*',
       rental: '/api/rental/*',
+      seller: '/api/seller/*',
       auth: '/api/auth/*',
       health: '/api/health'
     }
@@ -63,16 +64,26 @@ app.get('/api/health', async (req, res) => {
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Rental Routes
-// Rental Routes
+// Auth Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/seller', require('./routes/sellerRoutes'));
+
+// ✅ FIXED: Seller Routes - Make sure path is correct
+try {
+  app.use('/api/seller', require('./routes/sellerRoutes'));
+  console.log('✅ Seller routes loaded');
+} catch (err) {
+  console.error('❌ Error loading seller routes:', err.message);
+}
+
+// Product & Deals Routes
 app.use('/api/products', require('./routes/products'));
 app.use('/api/deals', require('./routes/deals'));
+
+// Rental Routes
 app.use('/api/rental/products', require('./routes/rental/products'));
 app.use('/api/rental/cart', require('./routes/rental/Cart'));
 app.use('/api/rental/favorites', require('./routes/rental/favorites'));
-app.use('/api/rental', require('./routes/rental/rentals')); 
+app.use('/api/rental', require('./routes/rental/rentals'));
 console.log('✅ Rental routes loaded');
 
 // Admin Routes
@@ -84,6 +95,7 @@ app.use('/api/admin/payments', require('./routes/admin/paymentsRoutes'));
 app.use('/api/admin/verifications', require('./routes/admin/verificationRoutes'));
 app.use('/api/admin/promos', require('./routes/admin/promosRoutes'));
 app.use('/api/admin/analytics', require('./routes/admin/analyticsRoutes'));
+console.log('✅ Admin routes loaded');
 
 // ==================== ERROR HANDLERS ====================
 app.use((req, res) => {
@@ -93,7 +105,12 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error('❌ Error:', err.message);
-  res.status(err.status || 500).json({ success: false, message: err.message || 'Internal Server Error' });
+  console.error('Stack:', err.stack);
+  res.status(err.status || 500).json({ 
+    success: false, 
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 // ==================== START SERVER ====================
@@ -102,26 +119,49 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connected');
     
-    // ⚠️ DON'T sync after seeding - it deletes all data!
-    // await sequelize.sync({ force: true }); // ❌ This drops all tables and data
-    // await sequelize.sync({ alter: true });  // ❌ This also modifies/drops data
-    // Only use sync during initial setup, not in production
+    // ✅ CREATE RENTALS TABLE IF NOT EXISTS (don't use force)
+    try {
+      const Rental = require('./models/rental/Rental');
+      
+      // Use alter instead of force to preserve existing data
+      await Rental.sync({ alter: true });
+      console.log('✅ Rentals table synced');
+    } catch (syncError) {
+      console.error('⚠️ Rentals table sync error:', syncError.message);
+      console.log('💡 You may need to create the rentals table manually');
+    }
     
     app.listen(PORT, () => {
       console.log(`\n🚀 Server: http://localhost:${PORT}`);
       console.log(`📱 Frontend: http://localhost:5173`);
-      console.log(`🔧 Admin: http://localhost:5173/admin/login\n`);
+      console.log(`🔧 Admin: http://localhost:5173/admin/login`);
+      console.log(`\n📋 API Routes:`);
+      console.log(`   ✅ /api/auth/*`);
+      console.log(`   ✅ /api/seller/*`);
+      console.log(`   ✅ /api/rental/*`);
+      console.log(`   ✅ /api/admin/*\n`);
     });
   } catch (error) {
-    console.error('❌ Failed to start:', error.message);
+    console.error('❌ Failed to start server:', error.message);
+    console.error('Stack:', error.stack);
     process.exit(1);
   }
 };
 
 process.on('SIGINT', async () => {
-  console.log('\n👋 Shutting down...');
-  await sequelize.close();
+  console.log('\n👋 Shutting down gracefully...');
+  try {
+    await sequelize.close();
+    console.log('✅ Database connection closed');
+  } catch (error) {
+    console.error('❌ Error closing database:', error.message);
+  }
   process.exit(0);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('Reason:', reason);
 });
 
 startServer();

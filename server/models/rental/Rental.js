@@ -12,10 +12,15 @@ const Rental = sequelize.define('Rental', {
     allowNull: false,
     field: 'user_id'
   },
-  productId: {  // ✅ This is the actual column name
+  productId: {
     type: DataTypes.UUID,
     allowNull: false,
     field: 'product_id'
+  },
+  sellerId: {
+    type: DataTypes.UUID,  // ✅ CHANGED: INTEGER → UUID
+    allowNull: true,
+    field: 'seller_id'
   },
   startDate: { 
     type: DataTypes.DATE, 
@@ -59,7 +64,5 @@ const Rental = sequelize.define('Rental', {
   underscored: true,
   timestamps: true
 });
-
-// ✅ NO ASSOCIATIONS HERE - Already removed
 
 module.exports = Rental;

@@ -901,6 +901,7 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
+/* ✅ FIXED CHARTS SECTION */
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -913,12 +914,23 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
+  height: 400px; /* ✅ Fixed height */
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-card h3 {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.chart-card canvas {
+  flex: 1;
+  max-height: 320px !important; /* ✅ Fixed canvas height */
+  width: 100% !important;
+  height: auto !important;
 }
 
 @media (max-width: 1024px) {

@@ -3,14 +3,16 @@ const router = express.Router();
 const rentalController = require('../../controllers/rental/rentalController');
 const { authMiddleware, isRenterMiddleware } = require('../../middleware/authMiddleware');
 
-// Apply middleware
+// Apply auth middleware
 router.use(authMiddleware);
-router.use(isRenterMiddleware);
 
-// Routes - NO '/rentals' prefix here!
-router.get('/rentals', rentalController.getRentals);
-router.post('/rentals', rentalController.createRental);
-router.put('/rentals/:id/status', rentalController.updateRentalStatus);
-router.put('/rentals/:id/renew', rentalController.renewRental);
+// Renter routes (with renter middleware)
+router.get('/rentals', isRenterMiddleware, rentalController.getRentals);
+router.post('/rentals', isRenterMiddleware, rentalController.createRental);
+router.put('/rentals/:id/status', isRenterMiddleware, rentalController.updateRentalStatus);
+router.put('/rentals/:id/renew', isRenterMiddleware, rentalController.renewRental);
+
+// ✅ NEW - Seller rental history route (no renter middleware needed)
+router.get('/seller-rentals', rentalController.getSellerRentals);
 
 module.exports = router;

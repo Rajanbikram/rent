@@ -1,6 +1,32 @@
 import React from 'react';
 
 const HistoryTab = ({ history }) => {
+  // ✅ Transform API data to match UI structure
+  const transformedHistory = history.map(rental => {
+    // Map status from API to UI format
+    let uiStatus = 'pending';
+    if (rental.status === 'returned') {
+      uiStatus = 'completed';
+    } else if (rental.status === 'active') {
+      uiStatus = 'ongoing';
+    } else if (rental.status === 'booked') {
+      uiStatus = 'ongoing';
+    } else if (rental.status === 'ending-soon') {
+      uiStatus = 'ongoing';
+    }
+
+    return {
+      id: rental.id,
+      listingTitle: rental.product?.title || 'Unknown Product',
+      renterName: rental.renter?.fullName || 'Unknown Renter',
+      startDate: rental.startDate,
+      endDate: rental.endDate,
+      duration: rental.tenure,
+      earnings: rental.totalAmount,
+      status: uiStatus
+    };
+  });
+
   const formatDate = (date) => {
     const dt = new Date(date);
     return dt.toLocaleDateString('en-US', {
@@ -21,25 +47,25 @@ const HistoryTab = ({ history }) => {
     }
   };
 
-  const completedCount = history.filter(h => h.status === 'completed').length;
-  const ongoingCount = history.filter(h => h.status === 'ongoing').length;
-  const disputedCount = history.filter(h => h.status === 'disputed').length;
-  const totalEarned = history.reduce((sum, h) => sum + parseFloat(h.earnings), 0);
+  const completedCount = transformedHistory.filter(h => h.status === 'completed').length;
+  const ongoingCount = transformedHistory.filter(h => h.status === 'ongoing').length;
+  const disputedCount = transformedHistory.filter(h => h.status === 'disputed').length;
+  const totalEarned = transformedHistory.reduce((sum, h) => sum + parseFloat(h.earnings), 0);
 
   return (
     <div>
       <div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Rental History</h2>
         <p style={{ color: 'var(--muted-fg)', fontSize: '.875rem', marginTop: '.5rem' }}>
-          {history.length} records
+          {transformedHistory.length} records
         </p>
       </div>
 
-      {history.length > 0 ? (
+      {transformedHistory.length > 0 ? (
         <>
           <div className="history-timeline">
             <div className="timeline-line"></div>
-            {history.map((item, index) => (
+            {transformedHistory.map((item, index) => (
               <div
                 key={item.id}
                 className="history-item fade-in"
@@ -189,7 +215,14 @@ const HistoryTab = ({ history }) => {
       ) : (
         <div className="empty-state">
           <div className="empty-icon">📜</div>
-          <p style={{ fontWeight: 600 }}>No history yet</p>
+          <p style={{ fontWeight: 600 }}>No rental history yet</p>
+          <p style={{ 
+            color: 'var(--muted-fg)', 
+            fontSize: '.875rem',
+            marginTop: '.5rem'
+          }}>
+            Your rental records will appear here once someone rents your products
+          </p>
         </div>
       )}
     </div>

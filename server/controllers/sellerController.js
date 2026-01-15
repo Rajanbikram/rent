@@ -474,19 +474,83 @@ const markMessageRead = async (req, res) => {
 };
 
 // Get rental history
+// Get rental history - ✅ UPDATED to fetch from actual Rental table
 const getRentalHistory = async (req, res) => {
   try {
-    const history = await RentalHistory.findAll({
-      where: { sellerId: req.user.id },
+    const sellerId = req.user.id;
+    
+    console.log('📋 Fetching rental history for seller:', sellerId);
+    
+    // Import models
+    const Rental = require('../models/rental/Rental');
+    const User = require('../models/User');
+    
+    // Get all listings by this seller
+    const sellerListings = await Listing.findAll({
+      where: { sellerId },
+      attributes: ['id', 'title', 'pricePerMonth']
+    });
+    
+    const listingIds = sellerListings.map(l => l.id);
+    console.log('📦 Seller has', listingIds.length, 'listings');
+    
+    if (listingIds.length === 0) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+    
+    // Get all rentals for these listings
+    const rentals = await Rental.findAll({
+      where: {
+        productId: listingIds
+      },
       order: [['createdAt', 'DESC']]
     });
-
+    
+    console.log('📋 Found', rentals.length, 'rentals');
+    
+    // Fetch user and listing details for each rental
+    const rentalsWithDetails = await Promise.all(
+      rentals.map(async (rental) => {
+        // Get renter details
+        const renter = await User.findByPk(rental.userId, {
+          attributes: ['id', 'fullName', 'email']
+        });
+        
+        // Get listing details
+        const listing = sellerListings.find(l => l.id === rental.productId);
+        
+        return {
+          id: rental.id,
+          listingId: rental.productId,
+          listingTitle: listing ? listing.title : 'Unknown Product',
+          renterName: renter ? renter.fullName : 'Unknown User',
+          renterEmail: renter ? renter.email : '',
+          status: rental.status,
+          startDate: rental.startDate,
+          endDate: rental.endDate,
+          duration: rental.tenure,
+          monthlyRent: rental.monthlyRent,
+          earnings: rental.totalAmount,
+          paymentMethod: rental.paymentMethod,
+          address: rental.address,
+          createdAt: rental.createdAt
+        };
+      })
+    );
+    
+    console.log('✅ Rental history prepared');
+    
     res.json({
       success: true,
-      data: history
+      data: rentalsWithDetails
     });
+    
   } catch (error) {
-    console.error('Get rental history error:', error);
+    console.error('❌ Get rental history error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to get rental history',

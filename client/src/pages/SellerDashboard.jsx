@@ -39,10 +39,31 @@ const SellerDashboard = () => {
 
       console.log('📦 Dashboard API Response:', response.data);
 
+      // ✅ NEW - Fetch seller rentals
+      let sellerRentals = [];
+      try {
+        console.log('🔄 Fetching seller rentals...');
+        const rentalsResponse = await api.get('/rental/seller-rentals');
+        console.log('📦 Seller Rentals Response:', rentalsResponse.data);
+        
+        if (rentalsResponse.data.success) {
+          sellerRentals = rentalsResponse.data.data || [];
+          console.log('✅ Seller rentals loaded:', sellerRentals.length);
+        }
+      } catch (rentalError) {
+        console.error('⚠️ Error fetching seller rentals:', rentalError);
+        // Continue even if rentals fail
+      }
+
       if (response.data.success) {
         console.log('✅ Dashboard data loaded');
         console.log('📋 Listings count:', response.data.data.listings?.length || 0);
-        setDashboardData(response.data.data);
+        
+        // ✅ Add seller rentals to dashboard data
+        setDashboardData({
+          ...response.data.data,
+          sellerRentals: sellerRentals
+        });
       }
     } catch (error) {
       console.error('❌ Dashboard fetch error:', error);
@@ -177,10 +198,11 @@ const SellerDashboard = () => {
     );
   }
 
-  const { seller, listings, messages, rentalHistory, earnings, stats } = dashboardData;
+  const { seller, listings, messages, rentalHistory, earnings, stats, sellerRentals } = dashboardData;
 
   console.log('🎨 Rendering dashboard with:', {
     listingsCount: listings?.length || 0,
+    sellerRentalsCount: sellerRentals?.length || 0,
     modalOpen: isAddListingModalOpen
   });
 
@@ -231,11 +253,11 @@ const SellerDashboard = () => {
           )}
 
           {currentTab === 'earnings' && (
-            <EarningsTab earnings={earnings || []} />
+            <EarningsTab earnings={sellerRentals || []} />
           )}
 
           {currentTab === 'history' && (
-            <HistoryTab history={rentalHistory || []} />
+            <HistoryTab history={sellerRentals || []} />
           )}
 
           {currentTab === 'profile' && (
