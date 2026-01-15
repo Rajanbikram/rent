@@ -6,7 +6,7 @@ const ProductCard = ({ product, showToast, onLoginClick }) => {
 
   const handleBookNow = () => {
     if (onLoginClick) {
-      onLoginClick(); // Show login page
+      onLoginClick();
     } else {
       showToast('Login Required', 'Please login to book this item');
     }
@@ -14,30 +14,25 @@ const ProductCard = ({ product, showToast, onLoginClick }) => {
 
   const handleAddToCart = () => {
     if (onLoginClick) {
-      onLoginClick(); // Show login page
+      onLoginClick();
     } else {
       showToast('Login Required', 'Please login to add items to cart');
     }
   };
 
-  // Generate star rating
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={i < fullStars ? 'text-yellow-500' : 'text-gray-300'}>
-        {i < fullStars ? '★' : '☆'}
-      </span>
-    ));
-  };
-
   return (
-    <div className="product-card">
+    <div className={`product-card ${showDetails ? 'expanded' : ''}`}>
       {/* Product Image */}
-      <img
-        src={product.image}
-        alt={product.title}
-        className="product-image"
-      />
+      <div className="product-image-container">
+        <img
+          src={product.image || '/placeholder.jpg'}
+          alt={product.title}
+          className="product-image"
+          onError={(e) => {
+            e.target.src = '/placeholder.jpg';
+          }}
+        />
+      </div>
 
       {/* Product Content */}
       <div className="product-content">
@@ -59,29 +54,18 @@ const ProductCard = ({ product, showToast, onLoginClick }) => {
           )}
         </div>
 
-        {/* Price and Rating */}
+        {/* Price - NO RATING */}
         <div className="product-footer">
-          <div className="product-price-row">
-            <div>
-              <div className="product-price">
-                Rs. {product.price}
-                {product.tenureDiscount && (
-                  <span className="discount-badge ml-2">
-                    {product.tenureDiscount} off
-                  </span>
-                )}
-              </div>
-              <div className="product-rating">
-                {product.rating} 
-                <span className="stars-inline">
-                  {renderStars(product.rating)}
-                </span>
-                ({product.reviews})
-              </div>
-            </div>
+          <div className="product-price">
+            Rs. {product.price}
+            {product.tenureDiscount && (
+              <span className="discount-badge">
+                {product.tenureDiscount} off
+              </span>
+            )}
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - NO ICONS */}
           <div className="product-actions">
             <button
               onClick={() => setShowDetails(!showDetails)}
@@ -102,21 +86,42 @@ const ProductCard = ({ product, showToast, onLoginClick }) => {
       {/* Expanded Details */}
       {showDetails && (
         <div className="product-expanded">
-          <h4 className="expanded-title">Customer Reviews</h4>
-          <div className="expanded-reviews">
-            {product.review_snippet ? (
-              <p className="review-text">"{product.review_snippet}"</p>
-            ) : (
-              <>
-                <p className="review-text">
-                  "Great quality furniture! Perfect for my apartment in Kathmandu." - Priya S.
-                </p>
-                <p className="review-text">
-                  "Fast delivery and excellent customer service. Highly recommended!" - Rajesh K.
-                </p>
-              </>
-            )}
+          <h4 className="expanded-title">Product Details</h4>
+          
+          {/* Description */}
+          <div className="expanded-section">
+            <p className="detail-text">
+              {product.description || 'High-quality rental item available in your area. Contact us for more details.'}
+            </p>
           </div>
+
+          {/* Delivery Zones */}
+          {product.deliveryZones && product.deliveryZones.length > 0 && (
+            <div className="expanded-section">
+              <h5 className="expanded-subtitle">Available In</h5>
+              <div className="badges-row">
+                {product.deliveryZones.map((zone, index) => (
+                  <span key={index} className="badge-pill">
+                    {zone}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tenure Options */}
+          {product.tenureOptions && (
+            <div className="expanded-section">
+              <h5 className="expanded-subtitle">Rental Duration Options</h5>
+              <div className="tenure-options">
+                {product.tenureOptions.threeMonths && <span className="tenure-badge">3 Months</span>}
+                {product.tenureOptions.sixMonths && <span className="tenure-badge">6 Months</span>}
+                {product.tenureOptions.twelveMonths && <span className="tenure-badge">12 Months</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
             className="btn-add-cart-active"

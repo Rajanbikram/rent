@@ -18,7 +18,7 @@ const GuestBrowse = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toasts, setToasts] = useState([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // ✅ Changed to true - sidebar open by default
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -43,17 +43,22 @@ const GuestBrowse = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Fetching products and deals...');
+      
       const [productsRes, dealsRes] = await Promise.all([
         productAPI.getAll(),
         dealAPI.getAll()
       ]);
+
+      console.log('📦 Products received:', productsRes.data.data);
+      console.log('🎁 Deals received:', dealsRes.data.data);
 
       setAllProducts(productsRes.data.data);
       setProducts(productsRes.data.data);
       setDeals(dealsRes.data.data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('❌ Error fetching data:', err);
       setError('Failed to load data. Please try again later.');
       showToast('Error', 'Failed to load products and deals');
     } finally {
@@ -62,31 +67,47 @@ const GuestBrowse = () => {
   };
 
   const applyFilters = () => {
+    console.log('🔍 Applying filters:', filters);
     let filtered = [...allProducts];
 
     // Search filter
     if (filters.searchQuery) {
       filtered = filtered.filter(p =>
-        p.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
+        p.title?.toLowerCase().includes(filters.searchQuery.toLowerCase())
       );
     }
 
     // Category filter
     if (filters.selectedCategory !== 'all') {
       filtered = filtered.filter(p =>
-        p.category.toLowerCase() === filters.selectedCategory.toLowerCase()
+        p.category?.toLowerCase() === filters.selectedCategory.toLowerCase()
       );
     }
 
-    // Price range filter
-    filtered = filtered.filter(p =>
-      p.price >= filters.minPrice && p.price <= filters.maxPrice
-    );
-
-    // Location filter
+    // ✅ FIXED: Location filter - Check both location field AND deliveryZones array
     if (filters.location !== 'all') {
-      filtered = filtered.filter(p => p.location === filters.location);
+      filtered = filtered.filter(p => {
+        // Check if product has single location field
+        if (p.location && p.location === filters.location) {
+          return true;
+        }
+        
+        // Check if product has deliveryZones array
+        if (p.deliveryZones && Array.isArray(p.deliveryZones)) {
+          return p.deliveryZones.some(zone => 
+            zone.toLowerCase() === filters.location.toLowerCase()
+          );
+        }
+        
+        return false;
+      });
     }
+
+    // ✅ FIXED: Price range filter - Handle both price and pricePerMonth
+    filtered = filtered.filter(p => {
+      const productPrice = p.pricePerMonth || p.price || 0;
+      return productPrice >= filters.minPrice && productPrice <= filters.maxPrice;
+    });
 
     // Apply tenure discount
     if (filters.tenure !== '3') {
@@ -95,14 +116,19 @@ const GuestBrowse = () => {
       if (tenureMonths === 6) discount = 0.05;
       if (tenureMonths === 12) discount = 0.10;
 
-      filtered = filtered.map(product => ({
-        ...product,
-        originalPrice: product.price,
-        price: (product.price * (1 - discount)).toFixed(2),
-        tenureDiscount: (discount * 100).toFixed(0) + '%'
-      }));
+      filtered = filtered.map(product => {
+        const basePrice = product.pricePerMonth || product.price || 0;
+        return {
+          ...product,
+          originalPrice: basePrice,
+          price: Math.round(basePrice * (1 - discount)),
+          pricePerMonth: Math.round(basePrice * (1 - discount)),
+          tenureDiscount: (discount * 100).toFixed(0) + '%'
+        };
+      });
     }
 
+    console.log('✅ Filtered products:', filtered.length);
     setProducts(filtered);
   };
 
@@ -111,12 +137,18 @@ const GuestBrowse = () => {
   };
 
   const handleFilterChange = (newFilters) => {
+    console.log('🔄 Filter changed:', newFilters);
     setFilters(newFilters);
   };
 
   const showToast = (title, description) => {
     const id = Date.now();
     setToasts([...toasts, { id, title, description }]);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, 3000);
   };
 
   const removeToast = (id) => {

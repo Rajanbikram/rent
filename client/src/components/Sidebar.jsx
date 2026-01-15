@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import '../styles/Sidebar.css';
 
 const Sidebar = ({ 
@@ -29,16 +29,22 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Toggle Button */}
+      {/* ✅ Toggle Button - Always Visible Outside Sidebar */}
       <button 
         onClick={onToggle}
         className="sidebar-toggle-btn"
       >
-        ☰ Filters
+        {isOpen ? '✕ Close' : '☰ Filters'}
       </button>
 
       {/* Sidebar */}
       <aside className={`sidebar ${!isOpen ? 'sidebar-closed' : ''}`}>
+        
+        {/* Filter Header */}
+        <div className="filter-header">
+          <h3>☰ Filters</h3>
+        </div>
+
         {/* Category Filter */}
         <div className="filter-section">
           <h3 className="filter-title">Category</h3>
@@ -58,12 +64,12 @@ const Sidebar = ({
             onClick={() => handleCategoryChange('appliances')}
             className={`filter-btn ${filters.selectedCategory === 'appliances' ? 'filter-btn-active' : ''}`}
           >
-            ❄️ Appliances
+            ⚡ Appliances
           </button>
         </div>
 
         {/* Price Range */}
-        <div className="filter-section mt-4">
+        <div className="filter-section">
           <h3 className="filter-title">Price Range</h3>
           <input
             type="range"
@@ -88,7 +94,7 @@ const Sidebar = ({
         </div>
 
         {/* Rental Duration */}
-        <div className="filter-section mt-4">
+        <div className="filter-section">
           <h3 className="filter-title">Rental Duration</h3>
           <select
             value={filters.tenure}
@@ -105,7 +111,7 @@ const Sidebar = ({
         </div>
 
         {/* Location Filter */}
-        <div className="filter-section mt-4">
+        <div className="filter-section">
           <h3 className="filter-title">Location</h3>
           <button
             onClick={() => handleLocationChange('all')}
@@ -123,14 +129,14 @@ const Sidebar = ({
             onClick={() => handleLocationChange('Pokhara')}
             className={`filter-btn ${filters.location === 'Pokhara' ? 'filter-btn-active' : ''}`}
           >
-            ⛰️ Pokhara
+            🏞️ Pokhara
           </button>
         </div>
 
         {/* Login Teaser */}
         <div className="login-teaser-box">
-          🔓 More Filters Available<br/>
-          Login to access advanced search options
+          <h4>🔓 More Filters Available</h4>
+          <p>Login to access advanced search options</p>
         </div>
       </aside>
     </>

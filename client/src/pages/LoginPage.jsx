@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
-import { useRental } from '../contexts/RentalContext';  // ✅ Import useRental
+import { useRental } from '../contexts/RentalContext';
 import '../styles/LoginPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { clearAllData, refetchUserData } = useRental();  // ✅ Get both functions
+  const { clearAllData, refetchUserData } = useRental();
   
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    role: ''
+    password: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -28,7 +27,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password || !formData.role) {
+    if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
       return;
     }
@@ -37,16 +36,16 @@ const LoginPage = () => {
     setError('');
 
     try {
-      console.log('🔄 Attempting login...', formData);
+      console.log('🔄 Attempting login...', { email: formData.email });
       
       // ✅ Clear old user data BEFORE login
       console.log('🧹 Clearing previous user data...');
       clearAllData();
       
+      // ✅ NEW: Try to detect user role from database
       const response = await authAPI.login({
         email: formData.email,
-        password: formData.password,
-        role: formData.role
+        password: formData.password
       });
 
       console.log('✅ Full login response:', response.data);
@@ -54,52 +53,54 @@ const LoginPage = () => {
       if (response.data.success) {
         const { token } = response.data;
         
-        // Get user data from correct key based on role
+        // ✅ Get user data and role from response
         let userData;
+        let userRole;
+        
         if (response.data.seller) {
           userData = response.data.seller;
-          console.log('👤 Seller data:', userData);
+          userRole = 'seller';
+          console.log('👤 Seller login:', userData);
         } else if (response.data.user) {
           userData = response.data.user;
-          console.log('👤 User data:', userData);
+          userRole = userData.role; // admin or renter from DB
+          console.log('👤 User login:', userData, 'Role:', userRole);
         } else if (response.data.admin) {
           userData = response.data.admin;
-          console.log('👤 Admin data:', userData);
+          userRole = 'admin';
+          console.log('👤 Admin login:', userData);
         } else {
-          console.error('❌ No user/seller/admin data in response!');
+          console.error('❌ No user data in response!');
           setError('Invalid response from server');
           return;
         }
         
         console.log('🔑 Token:', token);
+        console.log('👤 Role from DB:', userRole);
         
         // Store in localStorage
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('userRole', userData.role || formData.role);
+        localStorage.setItem('userRole', userRole);
         
-        // For admin, also store admin_token for admin-specific API calls
-        if ((userData.role || formData.role).toLowerCase() === 'admin') {
+        // For admin, also store admin_token
+        if (userRole === 'admin') {
           localStorage.setItem('admin_token', token);
         }
         
         console.log('💾 Saved to localStorage');
-        console.log('💾 Token:', localStorage.getItem('token'));
-        console.log('💾 User:', localStorage.getItem('user'));
-        console.log('💾 Role:', localStorage.getItem('userRole'));
         
-        // Navigate based on role
-        const role = (userData.role || formData.role).toLowerCase();
-        console.log(`🚀 Navigating to ${role} dashboard...`);
+        // Navigate based on role from database
+        console.log(`🚀 Navigating to ${userRole} dashboard...`);
         
-        if (role === 'admin') {
+        if (userRole === 'admin') {
           navigate('/admin');
-        } else if (role === 'seller') {
+        } else if (userRole === 'seller') {
           navigate('/seller/dashboard');
-        } else if (role === 'renter') {
+        } else if (userRole === 'renter') {
           navigate('/rental');
           
-          // ✅ NEW: Refetch user data after navigation
+          // Refetch user data after navigation
           setTimeout(() => {
             console.log('🔄 Triggering data refetch for renter...');
             refetchUserData();
@@ -123,10 +124,6 @@ const LoginPage = () => {
 
   const handleRegisterClick = () => {
     navigate('/register');
-  };
-
-  const handleBackToGuest = () => {
-    navigate('/');
   };
 
   return (
@@ -166,22 +163,6 @@ const LoginPage = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="role">Select role</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Please select your role</option>
-              <option value="admin">Admin</option>
-              <option value="seller">Seller</option>
-              <option value="renter">Renter</option>
-            </select>
-          </div>
-
           {error && (
             <div style={{ 
               color: '#e53e3e', 
@@ -198,14 +179,6 @@ const LoginPage = () => {
 
           <button type="submit" className="login-btn" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
-          </button>
-
-          <button 
-            type="button" 
-            className="back-btn"
-            onClick={handleBackToGuest}
-          >
-            ← Back to Browse
           </button>
 
           <p className="register-link">

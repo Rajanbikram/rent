@@ -1,138 +1,254 @@
-/* Sidebar */
+/* ✅ Sidebar - White Background */
 .sidebar {
   position: fixed;
   left: 0;
   top: 120px;
   width: 280px;
-  height: calc(100vh - 140px);
-  background: var(--card);
-  border-right: 1px solid #e6e9ef;
-  padding: 18px;
+  height: calc(100vh - 120px);
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
   overflow-y: auto;
-  transition: transform 0.28s ease;
-  z-index: 80;
+  transition: transform 0.3s ease;
+  z-index: 50;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-closed {
-  transform: translateX(-112%);
+  transform: translateX(-100%);
 }
 
-/* Toggle Button */
+/* ✅ Toggle Button - ALWAYS VISIBLE, HIGHEST Z-INDEX */
 .sidebar-toggle-btn {
   position: fixed;
   left: 12px;
-  top: 136px;
+  top: 130px;
   background: var(--primary);
   color: #fff;
   border: none;
   padding: 10px 16px;
   border-radius: 8px;
-  z-index: 140;
+  z-index: 150; /* ✅ Highest z-index - above everything */
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
+  justify-content: center;
 }
 
 .sidebar-toggle-btn:hover {
   background: #0056b3;
   transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
 }
 
-/* Filter sections */
+.sidebar-toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* ✅ Filter Header */
+.filter-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  z-index: 10;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.filter-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ✅ Filter Sections */
 .filter-section {
   margin-bottom: 20px;
 }
 
 .filter-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   margin-bottom: 10px;
-  color: #111;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Filter buttons */
+/* ✅ Filter Buttons */
 .filter-btn {
   display: block;
   width: 100%;
   text-align: left;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 123, 255, 0.08);
-  background: #fbfdff;
+  border: 2px solid #f3f4f6;
+  background: #fafafa;
   margin-bottom: 8px;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
 }
 
 .filter-btn:hover {
   background: #f3f6ff;
-  border-color: rgba(0, 123, 255, 0.2);
+  border-color: rgba(0, 123, 255, 0.3);
 }
 
 .filter-btn-active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25);
 }
 
 .filter-btn-active:hover {
   background: #0056b3;
 }
 
-/* Price range */
+/* ✅ Price Range Slider */
 .price-range-slider {
   width: 100%;
-  margin-bottom: 8px;
+  margin: 12px 0 8px 0;
   cursor: pointer;
+  height: 6px;
+  border-radius: 10px;
+  background: #e5e7eb;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.price-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
+}
+
+.price-range-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
 }
 
 .price-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 13px;
+  color: #6b7280;
   margin-top: 6px;
+  font-weight: 600;
 }
 
-/* Tenure select */
+/* ✅ Tenure Select */
 .tenure-select {
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 123, 255, 0.08);
-  background: #fbfdff;
+  border: 2px solid #f3f4f6;
+  background: #fafafa;
   font-size: 14px;
+  font-weight: 500;
+  color: #374151;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
 .tenure-select:focus {
   border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .tenure-hint {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 11px;
+  color: #9ca3af;
   margin-top: 6px;
+  font-style: italic;
 }
 
-/* Login teaser */
+/* ✅ Login Teaser Box */
 .login-teaser-box {
   margin-top: 20px;
   padding: 16px;
   border-radius: 10px;
-  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-/* Responsive */
+.login-teaser-box h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.login-teaser-box p {
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* ✅ Custom Scrollbar */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f9fafb;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ✅ Responsive */
 @media (max-width: 900px) {
+  .sidebar {
+    width: 280px;
+    top: 100px;
+    height: calc(100vh - 100px);
+  }
+  
+  .sidebar-toggle-btn {
+    top: 110px;
+  }
+}
+
+@media (max-width: 768px) {
   .sidebar {
     display: none;
   }
