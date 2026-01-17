@@ -88,6 +88,7 @@ console.log('✅ Rental routes loaded');
 
 // Admin Routes
 app.use('/api/admin/auth', require('./routes/admin/adminAuthRoutes'));
+app.use('/api/admin/dashboard', require('./routes/admin/dashboardRoutes')); // ✅ ADDED THIS LINE
 app.use('/api/admin/users', require('./routes/admin/usersRoutes'));
 app.use('/api/admin/listings', require('./routes/admin/listingsRoutes'));
 app.use('/api/admin/orders', require('./routes/admin/ordersRoutes'));

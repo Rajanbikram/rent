@@ -2,12 +2,12 @@ const { sequelize } = require('../config/database');
 const { DataTypes } = require('sequelize');
 
 // Initialize models that use factory pattern
-const Seller = require('./Seller')(sequelize, DataTypes);
-const Listing = require('./Listing')(sequelize, DataTypes);
+const Seller = require('./Seller');
 const RentalHistory = require('./RentalHistory')(sequelize, DataTypes);
 const Earning = require('./Earning')(sequelize, DataTypes);
 
-// Import models that are already initialized
+// Import models that are already initialized (no factory pattern)
+const Listing = require('./Listing');  // ✅ FIXED - removed (sequelize, DataTypes)
 const Deal = require('./Deal');
 const Product = require('./Product');
 const User = require('./User');
