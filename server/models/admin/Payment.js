@@ -6,15 +6,7 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       primaryKey: true
     },
-    orderId: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     amount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false
-    },
-    vatAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
@@ -25,11 +17,16 @@ module.exports = (sequelize) => {
     status: {
       type: DataTypes.ENUM('pending', 'completed', 'failed'),
       defaultValue: 'pending'
+    },
+    orderId: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     tableName: 'payments',
-    timestamps: true
+    timestamps: true,
+    underscored: false  // ✅ IMPORTANT: Set to false because DB uses camelCase
   });
-
+  
   return Payment;
 };

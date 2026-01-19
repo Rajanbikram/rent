@@ -1,6 +1,7 @@
 const Rental = require('../../models/rental/Rental');
 const { Listing, Seller, User } = require('../../models');
 const RentalCart = require('../../models/rental/Cart');
+const { Payment } = require('../../models/admin'); // ✅ ADDED THIS LINE
 
 // Renter's rental history
 exports.getRentals = async (req, res) => {
@@ -88,13 +89,13 @@ exports.getSellerRentals = async (req, res) => {
   }
 };
 
-// ✅ UPDATED - Create rental with seller_id
+// ✅ UPDATED - Create rental with seller_id AND PAYMENT CREATION
 exports.createRental = async (req, res) => {
   try {
     const { productId, tenure, address, paymentMethod } = req.body;
     const userId = req.user.id;
     
-    console.log('📝 Creating rental:', { userId, productId, tenure, address });
+    console.log('📝 Creating rental:', { userId, productId, tenure, address, paymentMethod });
     
     const listing = await Listing.findByPk(productId);
     
@@ -128,6 +129,8 @@ exports.createRental = async (req, res) => {
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + parseInt(tenure));
     
+    const totalAmount = parseFloat(listing.pricePerMonth) * parseInt(tenure);
+    
     // ✅ Include sellerId when creating rental
     const rental = await Rental.create({
       userId,
@@ -138,12 +141,41 @@ exports.createRental = async (req, res) => {
       tenure: parseInt(tenure),
       status: 'booked',
       monthlyRent: parseFloat(listing.pricePerMonth),
-      totalAmount: parseFloat(listing.pricePerMonth) * parseInt(tenure),
+      totalAmount: totalAmount,
       address,
       paymentMethod: paymentMethod || 'cash'
     });
     
     console.log('✅ Rental created successfully with seller_id:', rental.id, 'Seller:', rental.sellerId);
+    
+    // ✅✅✅ CREATE PAYMENT RECORD - THIS WAS MISSING! ✅✅✅
+    try {
+      // Generate unique payment ID
+      const timestamp = Date.now().toString().slice(-8);
+      const randomStr = Math.random().toString(36).substr(2, 5).toUpperCase();
+      const paymentId = `PAY${timestamp}${randomStr}`;
+      
+      const payment = await Payment.create({
+        id: paymentId,
+        amount: totalAmount,
+        paymentMethod: paymentMethod || 'esewa', // Default to esewa if not specified
+        status: 'pending',
+        orderId: rental.id
+      });
+      
+      console.log('💳 Payment created successfully:', {
+        paymentId: payment.id,
+        amount: payment.amount,
+        method: payment.paymentMethod,
+        orderId: payment.orderId
+      });
+      
+    } catch (paymentError) {
+      console.error('❌ Payment creation failed:', paymentError.message);
+      console.error('Payment error details:', paymentError);
+      // Don't fail the rental creation if payment fails
+      // Just log the error - rental is already created
+    }
     
     // Clear cart item
     try {
@@ -160,6 +192,7 @@ exports.createRental = async (req, res) => {
       message: 'Rental created successfully',
       data: rental
     });
+    
   } catch (error) {
     console.error('❌ Error creating rental:', error);
     res.status(500).json({ 

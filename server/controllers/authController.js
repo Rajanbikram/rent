@@ -108,7 +108,16 @@ const loginSeller = async (req, res) => {
       });
     }
 
-    console.log('✅ Seller found:', seller.email);
+    // ✅ Check if seller account is active
+    if (!seller.isActive) {
+      console.log('❌ Seller account is deactivated:', email);
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support.'
+      });
+    }
+
+    console.log('✅ Seller found and active:', seller.email);
 
     const isPasswordValid = await bcrypt.compare(password, seller.password);
     

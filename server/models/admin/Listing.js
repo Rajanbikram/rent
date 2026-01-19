@@ -11,33 +11,46 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    seller: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     sellerId: {
       type: DataTypes.UUID,
-      allowNull: true
+      allowNull: true,
+      field: 'seller_id'
     },
     category: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    price_per_month: {
+    pricePerMonth: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      defaultValue: 0
+      defaultValue: 0,
+      field: 'price_per_month'
     },
     status: {
-      type: DataTypes.ENUM('pending', 'approved', 'rejected'),  // ← Remove 'active'
+      type: DataTypes.ENUM('pending', 'approved', 'rejected', 'active', 'paused'),
       defaultValue: 'pending'
     },
     description: {
-      type: DataTypes.TEXT
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    images: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: []
+    },
+    views: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    rents: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     }
   }, {
     tableName: 'listings',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Listing;

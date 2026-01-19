@@ -6,53 +6,62 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       primaryKey: true
     },
-    listingId: {
-      type: DataTypes.UUID,  // Changed from STRING to UUID
-      allowNull: false
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'user_id'
     },
-    listingTitle: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    renterId: {
-      type: DataTypes.UUID,  // Changed from STRING to UUID
-      allowNull: false
-    },
-    renter: {
-      type: DataTypes.STRING,
-      allowNull: false
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      field: 'product_id'
     },
     sellerId: {
-      type: DataTypes.UUID,  // Changed from STRING to UUID
-      allowNull: false
-    },
-    seller: {
-      type: DataTypes.STRING,
-      allowNull: false
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: 'seller_id'
     },
     startDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: false
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: 'start_date'
     },
     endDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: false
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: 'end_date'
     },
-    totalAmount: {
-      type: DataTypes.DECIMAL(10, 2),
+    tenure: {
+      type: DataTypes.INTEGER,
       allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('pending', 'active', 'completed', 'cancelled'),
-      defaultValue: 'pending'
+      type: DataTypes.ENUM('booked', 'active', 'ending-soon', 'returned'),
+      defaultValue: 'booked'
+    },
+    monthlyRent: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'monthly_rent'
+    },
+    totalAmount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'total_amount'
+    },
+    address: {
+      type: DataTypes.JSONB,
+      allowNull: false
     },
     paymentMethod: {
-      type: DataTypes.ENUM('esewa', 'khalti'),
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'payment_method'
     }
   }, {
-    tableName: 'orders',
-    timestamps: true
+    tableName: 'rentals',
+    timestamps: true,
+    underscored: true
   });
 
   return Order;
