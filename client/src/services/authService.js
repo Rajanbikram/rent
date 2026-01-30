@@ -1,27 +1,86 @@
-export const authService = {
-  getToken: () => localStorage.getItem('token'),
-  setToken: (token) => localStorage.setItem('token', token),
-  removeToken: () => localStorage.removeItem('token'),
-  
-  getUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+import axiosInstance from './axiosConfig';
+
+const authService = {
+  // Login
+  login: async (email, password) => {
+    try {
+      const response = await axiosInstance.post('/admin/auth/login', { email, password });
+      
+      if (response.data.token) {
+        // Save token and user data
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.admin));
+        localStorage.setItem('userRole', response.data.admin.role);
+      }
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: 'Login failed' };
+    }
   },
-  setUser: (user) => localStorage.setItem('user', JSON.stringify(user)),
-  removeUser: () => localStorage.removeItem('user'),
-  
-  getRole: () => localStorage.getItem('userRole'),
-  setRole: (role) => localStorage.setItem('userRole', role),
-  removeRole: () => localStorage.removeItem('userRole'),
-  
-  isAuthenticated: () => !!authService.getToken(),
-  isRenter: () => authService.getRole() === 'renter',
-  isSeller: () => authService.getRole() === 'seller',
-  isAdmin: () => authService.getRole() === 'admin',
-  
+
+  // Register
+  register: async (name, email, password) => {
+    try {
+      const response = await axiosInstance.post('/admin/auth/register', { name, email, password, role: 'admin' });
+      
+      if (response.data.token) {
+        // Save token and user data
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.admin));
+        localStorage.setItem('userRole', response.data.admin.role);
+      }
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: 'Registration failed' };
+    }
+  },
+
+  // Logout
   logout: () => {
-    authService.removeToken();
-    authService.removeUser();
-    authService.removeRole();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    window.location.href = '/login';
+  },
+
+  // Get user from localStorage (synchronous)
+  getUser: () => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: () => {
+    return !!localStorage.getItem('token');
+  },
+
+  // Check if user is renter
+  isRenter: () => {
+    const userRole = localStorage.getItem('userRole');
+    return userRole === 'renter';
+  },
+
+  // Get current user from API
+  getCurrentUser: async () => {
+    try {
+      const response = await axiosInstance.get('/admin/auth/profile');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: 'Failed to get user' };
+    }
+  },
+
+  // Verify token
+  verifyToken: async () => {
+    try {
+      const response = await axiosInstance.get('/auth/verify');
+      return response.data;
+    } catch (error) {
+      return { success: false };
+    }
   }
 };
+
+export default authService;

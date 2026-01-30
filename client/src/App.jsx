@@ -1,9 +1,9 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ToastProvider } from './contexts/ToastContext';
-
 import { AuthProvider } from './contexts/AuthContext';
 import { RentalProvider } from './contexts/RentalContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminPages from './pages/admin/AdminPages';
 import './styles/admin/admin.css';
 
@@ -14,21 +14,16 @@ import RegisterPage from './pages/RegisterPage';
 import SellerDashboard from './pages/SellerDashboard';
 import RentalHome from './pages/RentalHome';
 
-// Rental/Seller Protected Route
-const ProtectedRoute = ({ children, requiredRole }) => {
-  const token = localStorage.getItem('token');
-  const userRole = localStorage.getItem('userRole');
+// ✅ Route guard component
+function RouteGuard({ children }) {
+  const location = useLocation();
   
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    console.log('📍 Current route:', location.pathname);
+  }, [location]);
   
   return children;
-};
+}
 
 function App() {
   return (
@@ -36,10 +31,17 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <RentalProvider>
-         
+            <RouteGuard>
               <Routes>
                 {/* Public Routes */}
-                <Route path="/" element={<GuestBrowse />} />
+                <Route 
+                  path="/" 
+                  element={
+                    <div>
+                      <GuestBrowse />
+                    </div>
+                  } 
+                />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
 
@@ -71,17 +73,32 @@ function App() {
                   }
                 />
 
-                {/* Admin Routes - All go to AdminPages (dashboard) */}
-                <Route path="/admin" element={<AdminPages />} />
-                <Route path="/admin/*" element={<AdminPages />} />
-                <Route path="/admin/login" element={<AdminPages />} />
-                <Route path="/admin/register" element={<AdminPages />} />
-                <Route path="/admin/dashboard" element={<AdminPages />} />
+                {/* Protected Admin Routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminPages />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminPages />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Admin Login/Register (public) */}
+                <Route path="/admin/login" element={<LoginPage />} />
+                <Route path="/admin/register" element={<RegisterPage />} />
 
                 {/* 404 Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-           
+            </RouteGuard>
           </RentalProvider>
         </AuthProvider>
       </ToastProvider>

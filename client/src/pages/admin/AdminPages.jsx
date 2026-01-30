@@ -11,10 +11,6 @@ import UsersTable from '../../components/admin/UsersTable';
 import ListingsTable from '../../components/admin/ListingsTable';
 import OrdersTable from '../../components/admin/OrdersTable';
 import PaymentsTable from '../../components/admin/PaymentsTable';
-import VerificationsTable from '../../components/admin/VerificationsTable';
-import PromosTable from '../../components/admin/PromosTable';
-import VatCalculator from '../../components/admin/VatCalculator';
-import PromoModal from '../../components/admin/PromoModal';
 
 function AdminPages() {
   const { showToast } = useToast();
@@ -44,28 +40,19 @@ function AdminPages() {
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [paymentsStats, setPaymentsStats] = useState(null);
   
-  // States for other pages
-  const [verifications, setVerifications] = useState([]);
-  const [promos, setPromos] = useState([]);
-  
   // Filter states
   const [userSearch, setUserSearch] = useState('');
   const [userTypeFilter, setUserTypeFilter] = useState('all');
   const [listingFilter, setListingFilter] = useState('all');
   const [orderFilter, setOrderFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
-  const [vatModalOpen, setVatModalOpen] = useState(false);
-  const [promoModalOpen, setPromoModalOpen] = useState(false);
 
   const pageHeaders = {
     dashboard: { title: 'Dashboard', subtitle: 'Welcome back, Admin' },
     users: { title: 'Users & Sellers', subtitle: 'Manage platform users' },
     listings: { title: 'Listings', subtitle: 'Approve and manage rental listings' },
     orders: { title: 'Orders', subtitle: 'Monitor rental orders' },
-    payments: { title: 'Payments', subtitle: 'Manage payments and VAT' },
-    verification: { title: 'Student Verification', subtitle: 'Verify student IDs' },
-    promotions: { title: 'Promotions', subtitle: 'Manage promo codes' },
-    analytics: { title: 'Analytics', subtitle: 'Platform insights' },
+    payments: { title: 'Payments', subtitle: 'Manage payments and VAT' }
   };
 
   // ✅ Fetch data when page changes
@@ -488,41 +475,6 @@ function AdminPages() {
       showToast('Error', 'Failed to update payment status');
     }
   };
-  
-  const handleApproveVerification = (v) => {
-    setVerifications(verifications.map(ver => ver.id === v.id ? { ...ver, status: 'approved' } : ver));
-    showToast('Student Verified', `${v.userName} is now verified`);
-  };
-  
-  const handleRejectVerification = (v) => {
-    setVerifications(verifications.map(ver => ver.id === v.id ? { ...ver, status: 'rejected' } : ver));
-    showToast('Verification Rejected', `${v.userName} was rejected`);
-  };
-  
-  const handleTogglePromo = (promo) => {
-    setPromos(promos.map(p => p.id === promo.id ? { ...p, isActive: !p.isActive } : p));
-    showToast(promo.isActive ? 'Promo Deactivated' : 'Promo Activated', `${promo.code} has been ${!promo.isActive ? 'activated' : 'deactivated'}`);
-  };
-  
-  const handleDeletePromo = (promo) => {
-    setPromos(promos.filter(p => p.id !== promo.id));
-    showToast('Promo Deleted', `${promo.code} has been deleted`);
-  };
-  
-  const handleCreatePromo = (formData) => {
-    const newPromo = {
-      id: Date.now().toString(),
-      code: formData.code,
-      discount: parseFloat(formData.discount),
-      type: formData.type,
-      isActive: true,
-      usageCount: 0,
-      expiresAt: formData.expiresAt,
-    };
-    setPromos([newPromo, ...promos]);
-    setPromoModalOpen(false);
-    showToast('Promo Created', `Promo code ${formData.code} has been created`);
-  };
 
   // Charts config
   const userGrowthChart = {
@@ -694,7 +646,7 @@ function AdminPages() {
             </section>
           )}
 
-          {/* ✅ ORDERS PAGE - REAL DATA */}
+          {/* ✅ ORDERS PAGE */}
           {activePage === 'orders' && (
             <section className="page-section active">
               <div className="section-header">
@@ -737,7 +689,7 @@ function AdminPages() {
             </section>
           )}
 
-          {/* ✅ PAYMENTS PAGE - REAL DATA */}
+          {/* ✅ PAYMENTS PAGE */}
           {activePage === 'payments' && (
             <section className="page-section active">
               <div className="section-header">
@@ -785,51 +737,8 @@ function AdminPages() {
             </section>
           )}
 
-          {/* VERIFICATION PAGE */}
-          {activePage === 'verification' && (
-            <section className="page-section active">
-              <div className="section-header">
-                <div>
-                  <div className="section-title">Student ID Verification</div>
-                  <div className="section-subtitle">Verify student IDs for discount eligibility</div>
-                </div>
-              </div>
-              <div style={{ textAlign: 'center', padding: '3rem' }}><div>No verification data available yet. This feature will be implemented soon.</div></div>
-            </section>
-          )}
-
-          {/* PROMOTIONS PAGE */}
-          {activePage === 'promotions' && (
-            <section className="page-section active">
-              <div className="section-header">
-                <div>
-                  <div className="section-title">Promotions & Promo Codes</div>
-                  <div className="section-subtitle">Create and manage promotional offers</div>
-                </div>
-              </div>
-              <div style={{ textAlign: 'center', padding: '3rem' }}><div>No promo data available yet. This feature will be implemented soon.</div></div>
-            </section>
-          )}
-
-          {/* ANALYTICS PAGE */}
-          {activePage === 'analytics' && (
-            <section className="page-section active">
-              <div className="section-header">
-                <div>
-                  <div className="section-title">Analytics Dashboard</div>
-                  <div className="section-subtitle">Platform performance metrics and insights</div>
-                </div>
-              </div>
-              <div style={{ textAlign: 'center', padding: '3rem' }}><div>No analytics data available yet. This feature will be implemented soon.</div></div>
-            </section>
-          )}
-
         </div>
       </main>
-
-      {/* MODALS */}
-      <VatCalculator isOpen={vatModalOpen} onClose={() => setVatModalOpen(false)} />
-      <PromoModal isOpen={promoModalOpen} onClose={() => setPromoModalOpen(false)} onSubmit={handleCreatePromo} />
     </div>
   );
 }

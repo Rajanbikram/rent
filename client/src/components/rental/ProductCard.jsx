@@ -17,7 +17,7 @@ const ProductCard = ({ product, onViewDetails, showToast }) => {
   const handleAddToCart = async () => {
     const success = await addToCart(product.id);
     if (success) {
-      showToast('Added to cart', `${product.name} has been added to your cart.`);
+      showToast('Added to cart', `${product.name || product.title || 'Product'} has been added to your cart.`);
     } else {
       showToast('Error', 'Failed to add to cart. Please login.', 'error');
     }
@@ -33,7 +33,11 @@ const ProductCard = ({ product, onViewDetails, showToast }) => {
   return (
     <div className="product-card">
       <div className="product-image-container">
-        <img src={product.image} alt={product.name} className="product-image" />
+        <img 
+          src={product.image || product.images?.[0] || '/placeholder.png'} 
+          alt={product.name || product.title || 'Product'} 
+          className="product-image" 
+        />
         <div className="product-badges">
           {product.badge && badgeConfig[product.badge] && (
             <span className={`badge ${badgeConfig[product.badge].class}`}>
@@ -71,18 +75,13 @@ const ProductCard = ({ product, onViewDetails, showToast }) => {
           <span className="badge badge-secondary" style={{textTransform: 'capitalize'}}>{product.category}</span>
           <span className="product-location">📍 {product.location}</span>
         </div>
-        <h3 className="product-title">{product.name}</h3>
-        <div className="product-rating">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span>{product.rating}</span>
-          <span className="reviews">({product.reviewCount} reviews)</span>
-        </div>
+        
+        <h3 className="product-title">{product.name || product.title || 'Unnamed Product'}</h3>
+        
         <div className="product-price">
-          <span className="current">₹{product.pricePerMonth.toLocaleString('en-IN')}</span>
+          <span className="current">₹{product.pricePerMonth?.toLocaleString('en-IN') || 0}</span>
           <span className="period">/month</span>
-          {discount > 0 && <span className="original">₹{product.originalPrice.toLocaleString('en-IN')}</span>}
+          {discount > 0 && <span className="original">₹{product.originalPrice?.toLocaleString('en-IN')}</span>}
         </div>
         <button className="btn btn-primary" onClick={handleAddToCart}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

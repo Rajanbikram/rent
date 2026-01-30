@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRental } from '../../contexts/RentalContext';
-import { authService } from '../../services/authService';
+import authService from "../../services/authService";
 
 const BookingModal = ({ product, isOpen, onClose, showToast }) => {
   const { createRental } = useRental();
